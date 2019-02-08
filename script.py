@@ -1,10 +1,19 @@
 #!/usr/bin/python3
 
-from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask import Flask, render_template, send_from_directory, request
+from flask_socketio import SocketIO, join_room
 
+### We need random number generator to create unique hashes for the clients.
+import random
+
+### This will be the Unique ID of this instance of the server
+server_uid = hex(random.getrandbits(128))
+server_uid_json = {}
+server_uid_json["server_uid"] = server_uid
+
+### Let the Flask app initialize
 app = Flask("new_project", template_folder='web')
-app.config['SECRET_KEY'] = 'secret!_tzudioftcf'
+app.config['SECRET_KEY'] = 'secret!_' + hex(random.getrandbits(128))
 socketio = SocketIO(app)
 
 
@@ -44,7 +53,35 @@ def admin_index():
 ### Define events which will the clients send to me
 @socketio.on('status_info')
 def status_info(json):
+    """When a new updated instance of the server is run, make sure, that client have the
+    the latest website. The spawned server has a unique UID.
+    If the client holds correct UID of the server, everything is alright.
+    If the client holds different value, it means it was created with older version of
+    the server and thus we need it to save the current UID and reload itself to get the
+    latest changes made to the websites.
+
+    Once the server UID is correct, move clients into rooms as needed."""
     print('[ INFO ] RECIEVED STATUS_INFO: ' + str( json["message"] ))
+    print('[ DATA ] CLIENT UID: ' +  request.sid)
+    if ( str(json["server_uid"]) != server_uid ):
+        print('[ DATA ]   CLIENT SIDE STORED SERVER_UID:' + str( json["server_uid"] ))
+        print('[ WARN ]   SERVER_UID MISMATCH, sending the client a reload request')
+        socketio.emit("server_uid", server_uid_json, json=True, broadcast=False, room=request.sid)
+    else :
+        print('[  OK  ]   SERVER_UID MATCH')
+        # Up-to-date clients are added to the room "clients",
+        # so we can later broadcast messages to the whole room
+        join_room('clients')
+        print('[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "CLIENTS"')
+        # Later distinguish between roles of the clients
+        if ( str(json["type"]) == "user" ):
+            join_room('users')
+            print('[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "USERS"')
+        elif ( str(json["type"]) == "admin" ):
+            join_room('admins')
+            print('[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "ADMINS"')
+
+
 
 @socketio.on('my_test_action')
 def handle_my_test_action(json):
@@ -62,7 +99,7 @@ def handle_my_test_action(json):
 
 ### MUST be at the end of file, after all socketio parameters has been defined !!
 if __name__ == '__main__':
+    print(" ")
     print("[ INFO ] SERVER STARTED")
+    print('[ DATA ] SERVER UID: ' + server_uid)
     socketio.run(app, debug=False, host='127.0.0.1')
-
-
