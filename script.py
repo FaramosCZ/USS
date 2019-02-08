@@ -3,6 +3,8 @@
 from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO, join_room
 
+import sys
+
 ### We need random number generator to create unique hashes for the clients.
 import random
 
@@ -16,6 +18,9 @@ app = Flask("new_project", template_folder='web')
 app.config['SECRET_KEY'] = 'secret!_' + hex(random.getrandbits(128))
 socketio = SocketIO(app)
 
+### The app needs destination where the players wnats to travel
+destination = ""
+difficulty = "Easy"
 
 
 
@@ -80,6 +85,29 @@ def status_info(json):
         elif ( str(json["type"]) == "admin" ):
             join_room('admins')
             print('[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "ADMINS"')
+
+
+
+@socketio.on('new_sudoku_request')
+def new_sudoku_request(json):
+    """Generate new sudoku"""
+    print('[ INFO ] RECIEVED MESSAGE: ' + str( json["message"] ))
+    print('[ INFO ] GENERATING NEW SUDOKU' )
+
+    sys.path.append(sys.path[0]+"/sudoku")
+    from sudoku import main
+    new_sudoku = main(difficulty)
+    print('[ DATA ] NEW SUDOKU: ' + str(new_sudoku) )
+    socketio.emit("new_sudoku", new_sudoku, json=False, broadcast=False, room='clients')
+
+
+
+@socketio.on('sudoku_solved')
+def sudoku_solved(json):
+    """Check solved sudoku"""
+    print('[ INFO ] RECIEVED SUDOKU: ' + str( json["sudoku"] ))
+    ### Aditional checks not yet implemented. Checks are done on the client side
+    socketio.emit("sudoku_solved_confirmed", destination, json=False, broadcast=False, room='clients')
 
 
 
