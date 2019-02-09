@@ -1,0 +1,86 @@
+
+/* --------------------------------------------------------------
+     BOTTOM INFORMATIVE TEXT
+-------------------------------------------------------------- */
+
+.jump_status {
+	font-weight: bold;
+	font-size: 200%;
+}
+
+.jump_pass, .jump_fail {
+	padding: 20px;
+}
+
+.jump_pass {
+	display: none;
+}
+
+button {
+	font-size: 200%;
+}
+
+/* --------------------------------------------------------------
+     HEADER
+-------------------------------------------------------------- */
+
+.header {
+	font-size: 500%;
+	text-align: center;
+	width: calc(100% - 10px);
+	min-height: 10vh;
+	padding: 30px 0 30px 0;
+	text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------
+     TABLE & SUDOKU
+-------------------------------------------------------------- */
+
+.cell, td, input, tr, table {
+	margin: 0;
+	padding: 0;
+	border: 0px;
+	border-collapse: collapse;
+}
+
+td {
+	border: 1px solid gray;
+}
+
+
+.sudoku_wrapper {
+	text-align: center;
+	margin: 30px 0px 30px 0px;
+	background-color: #aaa;
+	position: relative;
+	left: 50%;
+	transform: translate(-50%, 0%);
+	border: 2px solid black;
+}
+
+input {
+	height: 50px;
+	width: 50px;
+	text-align: center;
+	font-size: 150%;
+}
+
+input:read-only {
+	background-color: #eeeeee;
+	font-weight: bold;
+}
+
+/* --------------------------------------------------------------
+     LINES MAKING SQUARES 3X3 INSIDE THE SUDOKU BOARD
+-------------------------------------------------------------- */
+#cell_13, #cell_23, #cell_33, #cell_43, #cell_53, #cell_63, #cell_73, #cell_83, #cell_93, 
+#cell_16, #cell_26, #cell_36, #cell_46, #cell_56, #cell_66, #cell_76, #cell_86, #cell_96
+  {
+	border-right: 2px solid black;
+}
+
+#row_3, #row_6 {
+	border-bottom: 2px solid black;
+}
+

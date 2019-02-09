@@ -39,6 +39,11 @@ def add_header(request):
 def send_js(path):
     return send_from_directory('web/js', path)
 
+### This function serves CSS files from /web/css/ folder.
+@app.route('/css/<path:path>')
+def send_css(path):
+    return send_from_directory('web/css', path)
+
 ### Returns the default webpage for the user
 @app.route('/')
 def user_index():
@@ -92,6 +97,9 @@ def status_info(json):
 def new_sudoku_request(json):
     """Generate new sudoku"""
     print('[ INFO ] RECIEVED MESSAGE: ' + str( json["message"] ))
+    print('[ INFO ] RECIEVED DESTINATION: ' + str( json["destination"] ))
+    global destination
+    destination = str( json["destination"] )
     print('[ INFO ] GENERATING NEW SUDOKU' )
 
     sys.path.append(sys.path[0]+"/sudoku")
@@ -106,6 +114,7 @@ def new_sudoku_request(json):
 def sudoku_solved(json):
     """Check solved sudoku"""
     print('[ INFO ] RECIEVED SUDOKU: ' + str( json["sudoku"] ))
+    print('[ INFO ] SENDING DESTINATION: ' + destination)
     ### Aditional checks not yet implemented. Checks are done on the client side
     socketio.emit("sudoku_solved_confirmed", destination, json=False, broadcast=False, room='clients')
 

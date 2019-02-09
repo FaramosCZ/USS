@@ -1,0 +1,281 @@
+/* --------------------------------------------------------------
+     UNDEFINE EVERYTHING WE DON'T NEED
+-------------------------------------------------------------- */
+* {
+	font-family: Arial;
+	margin: 0px;
+	padding: 0px;
+}
+
+* :focus{
+	outline: 0px;
+}
+
+/* --------------------------------------------------------------
+     BASIC COLOURS
+-------------------------------------------------------------- */
+
+:root{
+	--color-blue-light: #009BF2;
+	--color-blue-medium: #002B48;
+	--color-blue-dark: #001A2B;
+
+	--color-yellow-light: #FBD45B;
+	--color-yellow-medium: #FBD45B;
+	--color-yellow-dark: #FBD45B;
+
+	--color-green-light: green;
+	--color-green-medium: green;
+	--color-green-dark: green;
+
+	--color-red-light: red;
+	--color-red-medium: red;
+	--color-red-dark: red;
+
+	--color-grey-light: grey;
+	--color-grey-medium: black;
+	--color-grey-dark: black;
+}
+
+/* --------------------------------------------------------------
+     BASIC BACKGROUND
+-------------------------------------------------------------- */
+
+.body_blue {
+	background-image: radial-gradient(circle, var(--color-blue-medium), var(--color-blue-dark));
+}
+
+/* --------------------------------------------------------------
+     BUTTON BLUE
+-------------------------------------------------------------- */
+
+.button_blue,
+.button_yellow,
+.button_green,
+.button_red,
+.button_grey {
+	background-color: var(--color-blue-medium);
+	min-height: 40px;
+	min-width: 60px;
+	color: var(--color-blue-light);
+	border: 2px solid var(--color-blue-light);
+	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-blue-light);
+	font-size: 120%;
+	padding: 5px 15px 5px 15px;
+	margin: 1px 0px 1px 10px;
+	z-index: 100;
+	position: relative;
+	border-radius: 0px 15px 0px 0px;
+	display: inline-block;
+	cursor: pointer;
+
+	transition: background-color 0.05s;
+}
+
+.button_blue::before,
+.button_yellow::before,
+.button_green::before,
+.button_red::before,
+.button_grey::before {
+	content: '';
+	display: block;
+	width: 9px;
+	height: 9px;
+	background-color: var(--color-blue-medium);
+	border-top: 3px solid var(--color-blue-medium);
+	border-right: 3px solid var(--color-blue-medium);
+	border-radius: 15px;
+	position: absolute;
+	top: -2px;
+	right: -2px;
+	z-index: 101;
+}
+
+.button_blue::after,
+.button_yellow::after,
+.button_green::after,
+.button_red::after,
+.button_grey::after {
+	content: '';
+	display: block;
+	width: 0px;
+	height: 15px;
+	background-color: var(--color-blue-medium);
+	border-right: 3px solid var(--color-blue-light);
+	position: absolute;
+	top: -3px;
+	right: 3px;
+	transform: rotate(-45deg);
+	z-index: 102;
+}
+
+.button_blue:hover,
+.button_yellow:hover,
+.button_green:hover,
+.button_red:hover {
+	background-color: var(--color-blue-dark);
+	text-shadow: 0 0 2px var(--color-blue-light);
+}
+
+.button_blue:active, .button_blue:active::before,
+.button_yellow:active, .button_yellow:active::before,
+.button_green:active, .button_green:active::before,
+.button_red:active, .button_red:active::before {
+	background-color: var(--color-blue-light);
+	color: var(--color-blue-dark);
+	text-shadow: 0 0 2px var(--color-blue-dark);
+}
+
+/* --------------------------------------------------------------
+     BUTTON YELLOW
+-------------------------------------------------------------- */
+
+.button_yellow {
+	color: var(--color-yellow-light);
+	border: 2px solid var(--color-yellow-light);
+	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-yellow-light);
+}
+
+.button_yellow::after {
+    	border-right: 3px solid var(--color-yellow-light);
+}
+
+.button_yellow:hover {
+	text-shadow: 0 0 2px var(--color-yellow-light);
+}
+
+.button_yellow:active, .button_yellow:active::before {
+	background-color: var(--color-yellow-light);
+	text-shadow: 0 0 2px var(--color-yellow-dark);
+}
+
+/* --------------------------------------------------------------
+     BUTTON GREEN
+-------------------------------------------------------------- */
+
+.button_green {
+	color: var(--color-green-light);
+	border: 2px solid var(--color-green-light);
+	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-green-light);
+}
+
+.button_green::after {
+    	border-right: 3px solid var(--color-green-light);
+}
+
+.button_green:hover {
+	text-shadow: 0 0 2px var(--color-green-light);
+}
+
+.button_green:active, .button_green:active::before {
+	background-color: var(--color-green-light);
+	text-shadow: 0 0 2px var(--color-green-dark);
+}
+
+/* --------------------------------------------------------------
+     BUTTON RED
+-------------------------------------------------------------- */
+
+.button_red {
+	color: var(--color-red-light);
+	border: 2px solid var(--color-red-light);
+	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-red-light);
+}
+
+.button_red::after {
+    	border-right: 3px solid var(--color-red-light);
+}
+
+.button_red:hover {
+	text-shadow: 0 0 2px var(--color-red-light);
+}
+
+.button_red:active, .button_red:active::before {
+	background-color: var(--color-red-light);
+	text-shadow: 0 0 2px var(--color-red-dark);
+}
+
+/* --------------------------------------------------------------
+     BUTTON GREY
+-------------------------------------------------------------- */
+
+.button_grey {
+	background-color: var(--color-grey-medium);
+	color: var(--color-grey-light);
+	border: 2px solid var(--color-grey-light);
+	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-grey-light);
+}
+
+.button_grey::after {
+    	border-right: 3px solid var(--color-grey-light);
+}
+
+/* --------------------------------------------------------------
+     TEXT BLUE
+-------------------------------------------------------------- */
+
+.text_blue, .text_blue_full, 
+.text_yellow, .text_yellow_full,
+.text_green, .text_green_full,
+.text_red, .text_red_full,
+.text_grey, .text_grey_full
+ {
+	background-color: var(--color-blue-medium);
+	min-height: 50px;
+	min-width: 50px;
+	color: var(--color-blue-light);
+	border: 2px solid var(--color-blue-light);
+	font-size: 120%;
+	padding: 5px 15px 5px 15px;
+	margin: 1px 0px 1px 0px;
+	position: relative;
+	border-radius: 15px;
+	display: inline-block;
+}
+
+.text_yellow {
+	color: var(--color-yellow-light);
+	border: 2px solid var(--color-yellow-light);
+}
+.text_green {
+	color: var(--color-green-light);
+	border: 2px solid var(--color-green-light);
+}
+.text_red {
+	color: var(--color-red-light);
+	border: 2px solid var(--color-red-light);
+}
+.text_grey {
+	color: var(--color-grey-light);
+	border: 2px solid var(--color-grey-light);
+}
+
+.text_blue_full {
+	background-color: var(--color-blue-light);
+	color: var(--color-blue-medium);
+	border: 2px solid var(--color-blue-light);
+}
+.text_yellow_full {
+	background-color: var(--color-yellow-light);
+	color: var(--color-blue-medium);
+	border: 2px solid var(--color-yellow-light);
+}
+.text_green_full {
+	background-color: var(--color-green-light);
+	color: var(--color-blue-medium);
+	border: 2px solid var(--color-green-light);
+}
+.text_red_full {
+	background-color: var(--color-red-light);
+	color: var(--color-blue-medium);
+	border: 2px solid var(--color-red-light);
+}
+.text_grey_full {
+	background-color: var(--color-grey-light);
+	color: var(--color-blue-medium);
+	border: 2px solid var(--color-grey-light);
+}
+
+
+
+

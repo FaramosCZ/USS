@@ -1,162 +1,21 @@
 <!doctype html>
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" href="/css/sci-fi-ui.css">
+  <link rel="stylesheet" type="text/css" href="/css/jumpdrive.css">
 </head>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script type="text/javascript" src="/js/cookies.js"></script>
 <script type="text/javascript" src="/js/common_socketio.js"></script>
+<script type="text/javascript" src="/js/jumpdrive.js"></script>
+
 <script type="text/javascript" charset="utf-8">
 
-// Define type of our client. This type is sent to the server as a part of "connect" message
-var client_type = "user";
-
-
-function generate_new_sudoku()
-  {
-   console.log("Sending request for NEW_SUDOKU");
-   socket.emit('new_sudoku_request', { message: 'Request for a new sudoku' });
-  }
-
-
-socket.on('new_sudoku', function(data)
-{
- console.log("Recieved message NEW_SUDOKU");
- console.log("Recieved data:"+data);
-
- // Prepare board
- for(var row=1; row<=9; row++)
-   {
-    for(var col=1; col<=9; col++)
-      {
-       document.getElementById("cell_"+row+""+col).value = "";
-       document.getElementById("cell_"+row+""+col).readOnly = false;
-       document.getElementById("cell_"+row+""+col).style.backgroundColor = "";
-      }
-   }
-
-
- // Now we'll insert the data into the matrix
- for(var row=1; row<=9; row++)
-   {
-    for(var col=1; col<=9; col++)
-      {
-       var value = data[ ((row-1)*9) + (col-1) ];
-       if(value == "0") 
-         {
-          document.getElementById("cell_"+row+""+col).value = "";
-         }
-       else
-         {
-          document.getElementById("cell_"+row+""+col).value = value;
-          document.getElementById("cell_"+row+""+col).readOnly = true;
-         }
-      }
-   }
-
-});
-
-
-
-function check_user_input(id)
-{
- document.getElementById(id).style.backgroundColor = "";
-
- var value = document.getElementById(id).value;
- if( value < "0" || value > "9")
-   {
-    document.getElementById(id).value = "";
-    return;
-   }
-
- var row = id[5];
- var col = id[6];
- 
-
- // Check row
- for(var check_row=1; check_row<=9; check_row++)
-   {
-    if( row == check_row ) continue;
-    if( document.getElementById("cell_"+check_row+""+col).value == value)
-      {
-       document.getElementById(id).style.backgroundColor = "#f00";
-       return false;
-      }
-   }
-
- // Check col
- for(var check_col=1; check_col<=9; check_col++)
-   {
-    if( col == check_col ) continue;
-    if( document.getElementById("cell_"+row+""+check_col).value == value)
-      {
-       document.getElementById(id).style.backgroundColor = "#f00";
-       return false;
-      }
-   }
-
- // Check square
- var root_row = row - (row-1)%3;
- var root_col = col - (col-1)%3;
-
- for(var check_row=root_row; check_row<root_row+3; check_row++)
-   {
-    for(var check_col=root_col; check_col<root_col+3; check_col++)
-      {
-       if( check_row == row && check_col == col) continue;
-       if( document.getElementById("cell_"+check_row+""+check_col).value == value)
-         {
-          document.getElementById(id).style.backgroundColor = "#f00";
-          return false;
-         }
-      }
-   }
- return true;
-}
-
-
-function check_solved_sudoku()
-{
- console.log("Sending request to CHECK SOLVED SUDOKU");
-
- var sudoku = "";
- for(var row=1; row<=9; row++)
-   {
-    for(var col=1; col<=9; col++)
-      {
-       if( document.getElementById("cell_"+row+""+col).value == "" )
-         {
-          alert("ERROR: !! Nelze nechat žádná pole prázdná !!");
-          return false;
-         } 
-       if( check_user_input("cell_"+row+""+col) == false )
-         {
-          alert("ERROR: !! V řešení jsou chyby !!");
-          return false;
-         }
-       // sudoku string 
-       sudoku += document.getElementById("cell_"+row+""+col).value;
-      }
-   }
-
- socket.emit('sudoku_solved', { sudoku: sudoku });
-}
-
-
-
-socket.on('sudoku_solved_confirmed', function(data)
-{
- console.log("Recieved message SUDOKU_SOLVED_CONFIRMED");
- console.log("Recieved data (destination): "+data);
-
- alert("Koordináty byly předány hlavnímu počítači. Destinace: " + data);
-
-});
-
-
 </script>
-<body>
 
-<div class="header"> Skokový pohon </div>
+<body class="body_blue">
+
+<div class="header text_blue"> Skokový pohon </div>
 
 <table class="sudoku_wrapper">
   <tr id="row_1">
@@ -262,8 +121,12 @@ socket.on('sudoku_solved_confirmed', function(data)
 
 
 <center>
-  <button onclick="generate_new_sudoku()"> Nové koordináty </button>
-  <button onclick="check_solved_sudoku()"> Potvrdit vypočítané koordináty </button>
+  <button class="button_blue" onclick="generate_new_sudoku()"> Nové koordináty </button>
+  <button class="button_blue" onclick="check_solved_sudoku()"> Potvrdit vypočítané koordináty </button>
+  <br /><br />
+  <div class="jump_status"> 
+    <div id="jump_pass" class="text_green_full jump_pass"> KOORDINÁTY ZADÁNY <br /> SKOK PŘIPRAVEN <br />Destinace: <span id="destination"></span></div>
+    <div id="jump_fail" class="text_red_full jump_fail"> KOORDINÁTY NEZADÁNY <br /> SKOK NENÍ PŘIPRAVEN </div>
 </center>
 
 
@@ -271,68 +134,6 @@ socket.on('sudoku_solved_confirmed', function(data)
 </html>
 
 <style>
-body {
-      background-color: #ddd;
-     }
 
-.header {
-         font-size: 500%;
-         font-family: Arial;
-         font-weight: bold;
-         text-align: center;
-         width: 100%;
-         min-height: 10vh;
-         background-color: grey;
-         padding: 30px 0 30px 0;
-        }
-
-.cell, td, input, tr, table {
-       margin: 0;
-       padding: 0;
-       border: 0px;
-       border-collapse: collapse;
-      }
-
-td {
-    border: 1px solid gray;
-   }
-
-#cell_13, #cell_23, #cell_33, #cell_43, #cell_53, #cell_63, #cell_73, #cell_83, #cell_93, 
-#cell_16, #cell_26, #cell_36, #cell_46, #cell_56, #cell_66, #cell_76, #cell_86, #cell_96
-  {
-   border-right: 2px solid black;
-  }
-
-#row_3, #row_6 {
-                border-bottom: 2px solid black;
-               }
-
-
-.sudoku_wrapper {
-                text-align: center;
-                margin: 30px 0px 30px 0px;
-                background-color: #aaa;
-                position: relative;
-                left: 50%;
-                transform: translate(-50%, 0%);
-                border: 2px solid black;
-                }
-
-
-input {
-       height: 50px;
-       width: 50px;
-       text-align: center;
-       font-size: 150%;
-      }
-
-input:read-only {
-  background-color: #eeeeee;
-  font-weight: bold;
-}
-
-button {
-font-size: 200%;
-}
 </style>
 
