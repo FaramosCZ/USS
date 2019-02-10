@@ -68,6 +68,8 @@ SPECIFICATIONS:
   all clients are webpages server by the server, it is easy to add new ones, not matter its
   role.
 
+  Clients prints out a number of JS log messages in format of "time [type] message".
+
   Player should be able to ask for new coordinates, solve the puzzle, and get confirmation
   on the solution
 
@@ -110,7 +112,7 @@ TODO:
 TODO priority:
 * Add IP and an identification of a client
 * Admin - be able to name clients
-* Client - show its IP, show it's name onmouseover
+* Client - show it's name onmouseover on its IP
 
 * Admin
  - reset, discard, name client, change difficulty, change destination, confirm destination
@@ -235,6 +237,8 @@ def status_info(json):
         elif ( str(json["type"]) == "admin" ):
             join_room('admins')
             print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "ADMINS"')
+        # Send client it's IP
+        socketio.emit("client_IP", request.remote_addr, json=False, broadcast=False, room=request.sid)
         # If the puzzle has already been solved, send the solution:
         if solved == True :
             json_data_to_send = {}

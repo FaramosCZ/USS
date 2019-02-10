@@ -101,3 +101,9 @@ input:read-only {
 	transform: translate(-50%, -50%);
         font-size: 300%;
 }
+
+#client_identification{
+	position: absolute;
+        right: 0px;
+        bottom: 0px;
+}

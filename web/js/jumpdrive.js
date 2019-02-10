@@ -206,6 +206,14 @@ socket.on('sudoku_solved_confirmed', function(data)
 socket.on('sudoku_solved_denied', function(data)
 {
  console.log(logtime() + "[ ERR! ] Recieved message SUDOKU_SOLVED_DENIED: " + data);
- alert("SERVER ERROR: " + data)
+ alert("SERVER ERROR: " + data);
 });
 
+
+
+// Recieve and store client IP
+socket.on('client_IP', function(data)
+{
+ console.log(logtime() + "[ DATA ] Recieved my IP: " + data);
+ document.getElementById("client_identification").innerHTML = data;
+});
