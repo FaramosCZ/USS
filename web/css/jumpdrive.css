@@ -90,3 +90,14 @@ input:read-only {
 	border-bottom: 2px solid black;
 }
 
+
+/* --------------------------------------------------------------
+     OTHER
+-------------------------------------------------------------- */
+#generating_progress {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+        font-size: 300%;
+}

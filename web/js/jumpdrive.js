@@ -22,6 +22,13 @@ function generate_new_sudoku()
 
    console.log("Sending request for NEW_SUDOKU");
    socket.emit('new_sudoku_request', { message: 'Request for a new sudoku', destination: destination });
+
+   var generating_progress = document.createElement("DIV");
+   generating_progress.setAttribute("id", "generating_progress");
+   generating_progress.setAttribute("class", "text_blue");
+   var generating_progress_text = document.createTextNode("ZÍSKÁVÁM CÍLOVÉ KOORDINÁTY");
+   generating_progress.appendChild(generating_progress_text);
+   document.body.appendChild(generating_progress);
   }
 
 function prepare_board(data)
@@ -61,6 +68,9 @@ function prepare_board(data)
 
    document.getElementById("jump_fail").style.display = "inline-block";
    document.getElementById("jump_pass").style.display = "none";
+
+   var generating_progress = document.getElementById("generating_progress");
+   generating_progress.remove();
 
 }
 
