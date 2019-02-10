@@ -61,4 +61,12 @@ socket.on('server_uid', function(data)
   }
 });
 
-// --------------
+
+
+// Notify server, that the client decided to leave the page
+window.onbeforeunload = function()
+{
+ socket.emit('client_leaving', "client_leaving");
+ console.log(logtime() + "[ INFO ] Leaving page");
+};
+

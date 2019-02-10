@@ -313,6 +313,12 @@ def sudoku_solved(json):
 
 
 
+@socketio.on('client_leaving')
+def client_leaving(data):
+    print( log() + '[ INFO ] CLIENT LEAVING: ' + request.remote_addr )
+
+
+
 @socketio.on('my_test_action')
 def handle_my_test_action(json):
     print( log() + '[ INFO ] RECIEVED ACTION: ' + str(json))
