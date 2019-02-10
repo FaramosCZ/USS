@@ -22,14 +22,9 @@ function generate_new_sudoku()
 
    console.log("Sending request for NEW_SUDOKU");
    socket.emit('new_sudoku_request', { message: 'Request for a new sudoku', destination: destination });
-
-   document.getElementById("jump_fail").style.display = "inline-block";
-   document.getElementById("jump_pass").style.display = "none";
-
   }
 
-
-socket.on('new_sudoku', function(data)
+function prepare_board(data)
 {
  console.log("Recieved message NEW_SUDOKU");
  console.log("Recieved data:"+data);
@@ -64,6 +59,16 @@ socket.on('new_sudoku', function(data)
       }
    }
 
+   document.getElementById("jump_fail").style.display = "inline-block";
+   document.getElementById("jump_pass").style.display = "none";
+
+}
+
+socket.on('new_sudoku', function(data)
+{
+ console.log("Recieved message NEW_SUDOKU");
+ console.log("Recieved data:"+data);
+ prepare_board(data);
 });
 
 
@@ -127,8 +132,6 @@ function check_user_input(id)
 
 function check_solved_sudoku()
 {
- console.log("Sending request to CHECK SOLVED SUDOKU");
-
  var sudoku = "";
  for(var row=1; row<=9; row++)
    {
@@ -149,6 +152,7 @@ function check_solved_sudoku()
       }
    }
 
+ console.log("Sending request to CHECK SOLVED SUDOKU");
  socket.emit('sudoku_solved', { sudoku: sudoku });
 }
 
@@ -157,16 +161,17 @@ function check_solved_sudoku()
 socket.on('sudoku_solved_confirmed', function(data)
 {
  console.log("Recieved message SUDOKU_SOLVED_CONFIRMED");
- console.log("Recieved data (destination): "+data);
-
+ console.log("Recieved data (destination): "+data["destination"]);
+ prepare_board(data["sudoku_data"]);
  document.getElementById("jump_fail").style.display = "none";
  document.getElementById("jump_pass").style.display = "inline-block";
-
-  document.getElementById("destination").innerHTML = data;
-
- alert("Koordináty byly předány hlavnímu počítači. Destinace: " + data);
- 
-
+ document.getElementById("destination").innerHTML = data["destination"];
 });
 
+
+socket.on('sudoku_solved_denied', function(data)
+{
+ console.log("Recieved message SUDOKU_SOLVED_DENIED: " + data);
+ alert("SERVER ERROR: " + data)
+});
 

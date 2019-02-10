@@ -27,9 +27,8 @@ button {
 .header {
 	font-size: 500%;
 	text-align: center;
-	width: calc(100% - 10px);
-	min-height: 10vh;
-	padding: 30px 0 30px 0;
+	width: calc(100% - 5px);
+	padding: 20px 0 20px 0;
 	text-transform: uppercase;
 }
 
@@ -64,6 +63,13 @@ input {
 	width: 50px;
 	text-align: center;
 	font-size: 150%;
+}
+
+@media (max-height: 800px) { 
+	input {
+		height: 40px;
+		width: 40px;
+	}
 }
 
 input:read-only {
