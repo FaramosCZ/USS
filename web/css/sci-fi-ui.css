@@ -204,6 +204,7 @@
 	color: var(--color-grey-light);
 	border: 2px solid var(--color-grey-light);
 	box-shadow: -4px 0px 0 0px var(--color-blue-medium), -10px 0px 0 0 var(--color-grey-light);
+	cursor: default;
 }
 
 .button_grey::after {

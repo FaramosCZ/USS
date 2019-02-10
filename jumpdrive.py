@@ -73,9 +73,6 @@ SPECIFICATIONS:
 
 
 TODO:
-* Server should check the corectness of the solution, not just its formate.
-* Client should log in a same style as server does ("time [type] message")
-* Client should get a box explaining the rules of the Sudoku puzzle.
 * Server should allow the players to ask for mutliple destinations. The client should have a
   list of destinations form current location, allowing multiple clients to solve any of them.
   Other clients would no longer discard solved Sudokus.
@@ -110,6 +107,20 @@ TODO:
 * Change default port?
   Add information about the firewall
 
+TODO priority:
+* Add IP and an identification of a client
+* Admin - be able to name clients
+* Client - show its IP, show it's name onmouseover
+
+* Admin
+ - reset, discard, name client, change difficulty, change destination, confirm destination
+ - show list of clients
+ - switch solved
+   * Server should check the corectness of the solution, not just its formate.
+
+* Add a (MIT) license file
+* Client should get a box explaining the rules of the Sudoku puzzle.
+
 '''
 
 from flask import Flask, render_template, send_from_directory, request
@@ -124,6 +135,10 @@ from random import getrandbits
 ### Current time to save into server logs
 from datetime import datetime
 
+### Sudoku generator
+path.append(path[0]+"/sudoku")
+from sudoku import main
+
 ### This will be the Unique ID of this instance of the server
 server_uid = hex(getrandbits(128))
 server_uid_json = {}
@@ -133,6 +148,9 @@ server_uid_json["server_uid"] = server_uid
 app = Flask("new_project", template_folder='web')
 app.config['SECRET_KEY'] = 'secret!_' + hex(getrandbits(128))
 socketio = SocketIO(app)
+
+### Debug option
+debug = False
 
 ### The app needs destination where the players wnats to travel
 destination = ""
@@ -197,7 +215,9 @@ def status_info(json):
 
     Once the server UID is correct, move clients into rooms as needed."""
     print( log() + '[ INFO ] RECIEVED STATUS_INFO: ' + str( json["message"] ))
-    print( log() + '[ DATA ] CLIENT UID: ' +  request.sid)
+    print( log() + '[ DATA ] CLIENT IP: ' +  request.remote_addr)
+    if debug:
+        print( log() + '[ DATA ] CLIENT UID: ' +  request.sid)
     if ( str(json["server_uid"]) != server_uid ):
         print( log() + '[ DATA ]   CLIENT SIDE STORED SERVER_UID:' + str( json["server_uid"] ))
         print( log() + '[ WARN ]   SERVER_UID MISMATCH, sending the client a reload request')
@@ -207,14 +227,14 @@ def status_info(json):
         # Up-to-date clients are added to the room "clients",
         # so we can later broadcast messages to the whole room
         join_room('clients')
-        print( log() + '[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "CLIENTS"')
+        print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "CLIENTS"')
         # Later distinguish between roles of the clients
         if ( str(json["type"]) == "user" ):
             join_room('users')
-            print( log() + '[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "USERS"')
+            print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "USERS"')
         elif ( str(json["type"]) == "admin" ):
             join_room('admins')
-            print( log() + '[ INFO ]   CLIENT '+request.sid+' HAS JOINED THE ROOM "ADMINS"')
+            print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "ADMINS"')
         # If the puzzle has already been solved, send the solution:
         if solved == True :
             json_data_to_send = {}
@@ -241,11 +261,10 @@ def new_sudoku_request(json):
     destination = str( json["destination"] )
     print( log() + '[ INFO ] GENERATING NEW SUDOKU' )
 
-    path.append(path[0]+"/sudoku")
-    from sudoku import main
     global sudoku_data
     sudoku_data = main(difficulty)
-    print( log() + '[ DATA ] NEW SUDOKU: ' + str(sudoku_data) )
+    if debug:
+        print( log() + '[ DATA ] NEW SUDOKU: ' + str(sudoku_data) )
     socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room='clients')
 
 
@@ -253,7 +272,10 @@ def new_sudoku_request(json):
 @socketio.on('sudoku_solved')
 def sudoku_solved(json):
     """Check solved sudoku"""
-    print( log() + '[ INFO ] RECIEVED SUDOKU: ' + str( json["sudoku"] ))
+    if debug:
+        print( log() + '[ INFO ] RECIEVED SUDOKU: ' + str( json["sudoku"] ))
+    else:
+        print( log() + '[ INFO ] RECIEVED SUDOKU')
     global sudoku_data
     if len(str( json["sudoku"] )) != 81 :
         print( log() + '[ ERR! ] RECIEVED SUDOKU CHECK FAILED - TOO SHORT!')
@@ -305,7 +327,8 @@ def handle_my_test_action(json):
 if __name__ == '__main__':
     print(" ")
     print( log() + '[ INFO ] SERVER STARTED: ' + datetime.now().strftime("%d.%m.%Y %H:%M:%S") )
-    print( log() + '[ DATA ] SERVER UID: ' + server_uid)
+    if debug:
+        print( log() + '[ DATA ] SERVER UID: ' + server_uid)
     ip = gethostbyname(gethostname())
     print( log() + '[ DATA ] SERVER IP: ' + ip)
     socketio.run(app, debug=False, host=ip)
