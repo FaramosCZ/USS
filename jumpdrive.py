@@ -89,7 +89,6 @@ TODO:
   have to show location of each player (on which cell they have a focus currently) a syncing
   the work across the clients. This way, the auto-completion bot could be done as a standalone
   client run by the administrator.
-* The Admin interface is not yet done
 * The Admin interface should allow to choose CSS - having a minimal version. With different
   software we need a single Master-Admin console aggregating all admin pages, allowing the
   operator to administer them easily.
@@ -99,7 +98,6 @@ TODO:
   ready.
 * Destination, which has been solved, should be selectable for a jump. Once selected, a huge
   countdown (60 sec?) should appear, allowing some clients to abort the jump (spaceship bridge?)
-  And of course admin - to simulate a failure.
 * This application should also be connected to the rest of the software, consuming and sending
   messages to the dispatcher. For example failure of hyperdrive or not enough fuel should prevent
   the players to proceed with a jump.
@@ -110,17 +108,8 @@ TODO:
   Add information about the firewall
 
 TODO priority:
-* Add IP and an identification of a client
-* Admin - be able to name clients
-* Client - show it's name onmouseover on its IP
 
-* Admin
- - reset, discard, name client, change difficulty, change destination, confirm destination
- - show list of clients
- - switch solved
-   * Server should check the corectness of the solution, not just its formate.
-
-* Add a (MIT) license file
+* Server should check the corectness of the solution, not just its formate.
 * Client should get a box explaining the rules of the Sudoku puzzle.
 
 '''
