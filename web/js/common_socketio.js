@@ -10,7 +10,7 @@ function logtime()
 // Each instance of the server has an unique UID.
 // We save it and use it for check, if the server changed / updated.
 // In such case, we need to reload the webpage to get up-to-date content.
-var server_uid = getCookie("server_uid");
+var server_uid = sessionStorage.getItem('server_uid');
 console.log(" ");
 console.log(logtime() + "[ INFO ] SERVER UID is now set to: " + server_uid);
 
@@ -25,11 +25,16 @@ socket.on('connect', function()
 {
  console.log(logtime() + "[ INFO ] Recieved message CONNECT");
  console.log(logtime() + "[ INFO ] Sending message STATUS_INFO");
+
+ var nickname = sessionStorage.getItem('nickname');
+ if ( nickname == null ) nickname="";
+
  socket.emit('status_info',
    {
     message: 'Render on the client has been successful!',
     server_uid: server_uid,
-    role: client_role
+    role: client_role,
+    nickname: nickname
    });
 });
 
@@ -44,9 +49,8 @@ socket.on('server_uid', function(data)
  console.log(logtime() + "[ INFO ] Server UID:"+data["server_uid"]);
  if (server_uid != data["server_uid"])
   {
-   console.log(logtime() + "[ INFO ] Creating cookie SERVER_UID");
-   setCookie("server_uid", data["server_uid"], 1)
-   //document.cookie = "server_uid="+data["server_uid"];
+   console.log(logtime() + "[ INFO ] Creating session storage key pair SERVER_UID");
+   sessionStorage.setItem('server_uid', data["server_uid"]);
    console.log(logtime() + "[ INFO ] Reloading");
    location.reload();
   }

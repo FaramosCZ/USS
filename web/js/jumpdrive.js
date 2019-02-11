@@ -220,6 +220,8 @@ socket.on('client_IP', function(data)
 {
  console.log(logtime() + "[ DATA ] Recieved my IP: " + data);
  document.getElementById("client_identification").innerHTML = data;
+ // Also update a nickname, if one is stored
+ if( sessionStorage.getItem('nickname') != null ) change_nickname(sessionStorage.getItem('nickname'));
 });
 
 
@@ -254,14 +256,20 @@ socket.on('destination_unreachable', function(data)
 });
 
 
-// Nickname has changed
-socket.on('change_nickname', function(data)
+// Change nickname
+function change_nickname(data)
 {
  console.log(logtime() + "[ DATA ] Recieved new nickname: " + data);
  var nickname_element = document.getElementById("nickname");
  if (nickname_element != null) document.getElementById("nickname").innerHTML = data;
  else document.getElementById("client_identification").innerHTML += "<br /><span id='nickname'>"+data+"</span>";
-});
+
+ console.log(logtime() + "[ INFO ] Creating session storage key pair NICKNAME");
+ sessionStorage.setItem('nickname', data);
+}
+
+// Nickname has changed
+socket.on('change_nickname', function(data){ change_nickname(data); });
 
 
 
@@ -269,13 +277,6 @@ socket.on('change_nickname', function(data)
 socket.on('change_role', function(data)
 {
  console.log(logtime() + "[ DATA ] Recieved new role: " + data);
- // TODO
- var nickname_element = document.getElementById("nickname");
- if (nickname_element != null)
-   {
-    console.log(logtime() + "[ INFO ] Creating cookie NICKNAME");
-    setCookie("nickname", document.getElementById("nickname").innerHTML, 1)
-   }
  window.location.href = "/" + data;
 });
 

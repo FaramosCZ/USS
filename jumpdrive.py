@@ -75,13 +75,7 @@ SPECIFICATIONS:
 
 
 TODO:
-* Server should allow the players to ask for mutliple destinations. The client should have a
-  list of destinations form current location, allowing multiple clients to solve any of them.
-  Other clients would no longer discard solved Sudokus.
-* Server should hold a database of know jumps (routes). If the players would travel often
-  between two points, the shouldn't need to compute them again for a certain time.
-* In both above cases, server needs to save a permanent data file with those information.
-  Once restarted, admin should be able to select what will recover.
+* Server should check the corectness of the solution, not just its formate.
 * It would be nice for the player client to be able to slowly autocomplete the Sudoku Puzzle.
   It should express the spaceship navigation computer to do its job. Admin should of course
   set the speed of atuo-completion (1 entry per 20s by default?)
@@ -89,15 +83,10 @@ TODO:
   have to show location of each player (on which cell they have a focus currently) a syncing
   the work across the clients. This way, the auto-completion bot could be done as a standalone
   client run by the administrator.
-* The Admin interface should allow to choose CSS - having a minimal version. With different
-  software we need a single Master-Admin console aggregating all admin pages, allowing the
-  operator to administer them easily.
 * Some clients should be read only.
 * Some clients should be only able to set destinations and do a jump. Such use-case can be on
   a spaceship bridge, when they only care about those, while engineering sections makes them
   ready.
-* Destination, which has been solved, should be selectable for a jump. Once selected, a huge
-  countdown (60 sec?) should appear, allowing some clients to abort the jump (spaceship bridge?)
 * This application should also be connected to the rest of the software, consuming and sending
   messages to the dispatcher. For example failure of hyperdrive or not enough fuel should prevent
   the players to proceed with a jump.
@@ -109,8 +98,21 @@ TODO:
 
 TODO priority:
 
-* Server should check the corectness of the solution, not just its formate.
-* Client should get a box explaining the rules of the Sudoku puzzle.
+* Player should get a box explaining the rules of the Sudoku puzzle.
+
+* Server should allow the players to ask for mutliple destinations. The client should have a
+  list of destinations form current location, allowing multiple clients to solve any of them.
+  Other clients would no longer discard solved Sudokus.
+* Server should hold a database of know jumps (routes). If the players would travel often
+  between two points, the shouldn't need to compute them again for a certain time.
+* In both above cases, server needs to save a permanent data file with those information.
+  Once restarted, admin should be able to select what will recover.
+* Destination, which has been solved, should be selectable for a jump. Once selected, a huge
+  countdown (60 sec?) should appear, allowing some clients to abort the jump (spaceship bridge?)
+
+* The Admin interface should allow to choose CSS - having a minimal version. With different
+  software we need a single Master-Admin console aggregating all admin pages, allowing the
+  operator to administer them easily.
 
 '''
 
@@ -245,7 +247,14 @@ def status_info(json):
     global client_list
     client_list[str(request.sid)] = {}
     client_list[str(request.sid)]["IP"] = str(request.remote_addr)
-    client_list[str(request.sid)]["nickname"] = str(request.remote_addr)
+    # Update nickname, if some is set
+    print( log() + '[ DATA ] CLIENT NICKNAME: ' + str( json["nickname"] ))
+    if str( json["nickname"] ) != "" :
+        client_list[str(request.sid)]["nickname"] = str( json["nickname"] )
+    else:
+        client_list[str(request.sid)]["nickname"] = str(request.remote_addr)
+    if debug:
+        print( log() + '[ DATA ] SAVED NICKNAME: ' + client_list[str(request.sid)]["nickname"])
     if debug:
         print( log() + '[ DATA ] CLIENT UID: ' +  request.sid)
     if ( str(json["server_uid"]) != server_uid ):
