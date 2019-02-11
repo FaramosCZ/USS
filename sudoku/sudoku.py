@@ -4,7 +4,9 @@ import time
 import copy
 import random
 
-level = "Easy"
+#level = "Easy"
+
+solution = ""
 
 """ [Level of Difficulty] = Input the level of difficulty of the sudoku puzzle. Difficulty levels
         include ‘Easy’ ‘Medium’ ‘Hard’ and ‘Insane’. Outputs a sudoku of desired
@@ -279,6 +281,8 @@ def solve(sudoku, n = 0):
     if n < 30:
         s = solver(sudoku)
         if s != False:
+            global solution
+            solution = s
             return s
         else:
             solve(sudoku, n+1)
@@ -315,6 +319,14 @@ def equalChecker(s1,s2):
             return False
     return True
 
+def printSolution():
+    global solution
+    result_string = ""
+    for i in range(81):
+        result_string += str(solution[0][i].returnSolved())
+    return result_string
+
+
 def main(level):
     """ Input the level of difficulty of the sudoku puzzle. Difficulty levels
         include ‘Easy’ ‘Medium’ ‘Hard’ and ‘Insane’. Outputs a sudoku of desired
@@ -331,7 +343,7 @@ def main(level):
         #print("Runtime is " + str(t3) + " seconds")
         #print("Guesses: " + str(s[1]))
         #print("Level: " + str(s[2]))
-        return printSudoku(s[0])
+        return printSudoku(s[0]), printSolution()
     if level == 'Medium':
         p = perfectSudoku()
         s = puzzleGen(p)
@@ -347,7 +359,7 @@ def main(level):
         #print("Runtime is " + str(t3) + " seconds")
         #print("Guesses: " + str(s[1]))
         #print("Level: " + str(s[2]))
-        return printSudoku(s[0])
+        return printSudoku(s[0]), printSolution()
     if level == 'Hard':
         p = perfectSudoku()
         s = puzzleGen(p)
@@ -368,7 +380,7 @@ def main(level):
         #print("Runtime is " + str(t3) + " seconds")
         #print("Guesses: " + str(s[1]))
         #print("Level: " + str(s[2]))
-        return printSudoku(s[0])
+        return printSudoku(s[0]), printSolution()
     if level == 'Insane':
         p = perfectSudoku()
         s = puzzleGen(p)
@@ -382,7 +394,7 @@ def main(level):
         #print("Runtime is " + str(t3) + " seconds")
         #print("Guesses: " + str(s[1]))
         #print("Level: " + str(s[2]))
-        return printSudoku(s[0])
+        return printSudoku(s[0]), printSolution()
     else:
         raise(ValueError)
 

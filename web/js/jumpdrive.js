@@ -1,6 +1,6 @@
 
-// Define type of our client. This type is sent to the server as a part of "connect" message
-var client_type = "user";
+// Define role of our client. This role is sent to the server as a part of "connect" message
+var client_role = "player";
 var destination = "";
 
 
@@ -94,7 +94,7 @@ function check_user_input(id)
     if( row == check_row ) continue;
     if( document.getElementById("cell_"+check_row+""+col).value == value)
       {
-       document.getElementById(id).style.backgroundColor = red;
+       document.getElementById(id).style.backgroundColor = "red";
        return false;
       }
    }
@@ -105,7 +105,7 @@ function check_user_input(id)
     if( col == check_col ) continue;
     if( document.getElementById("cell_"+row+""+check_col).value == value)
       {
-       document.getElementById(id).style.backgroundColor = red;
+       document.getElementById(id).style.backgroundColor = "red";
        return false;
       }
    }
@@ -162,8 +162,7 @@ function check_solved_sudoku()
 
 
 
-// When new sudoku has been recieved - either we asked for it or someone else - overwrite the one we currently have
-socket.on('new_sudoku', function(data)
+function new_sudoku(data)
 {
  // Reset the board
  prepare_board(data);
@@ -171,13 +170,19 @@ socket.on('new_sudoku', function(data)
  // Delete the "In progress" box, if we have it (we don't have it if we didn't asked for new sudoku, but someone else did)
  var generating_progress = document.getElementById("generating_progress");
  if (generating_progress != null) generating_progress.remove();
+ var destination_unreachable = document.getElementById("destination_unreachable");
+ if (destination_unreachable != null) destination_unreachable.remove();
 
  // If disabled, enable the button for submitting the coordinates
  document.getElementById("button_check_coordinates").classList.remove('button_grey');
  document.getElementById("button_check_coordinates").classList.add('button_blue');
- //document.getElementById("button_check_coordinates").onclick = check_solved_sudoku();
  document.getElementById("button_check_coordinates").setAttribute("onclick", "check_solved_sudoku()");
-});
+}
+
+
+
+// When new sudoku has been recieved - either we asked for it or someone else - overwrite the one we currently have
+socket.on('new_sudoku', function(data){new_sudoku(data)} );
 
 
 
@@ -196,7 +201,6 @@ socket.on('sudoku_solved_confirmed', function(data)
  // Once solved, disable the button for submitting the coordinates
  document.getElementById("button_check_coordinates").classList.remove('button_blue');
  document.getElementById("button_check_coordinates").classList.add('button_grey');
- //document.getElementById("button_check_coordinates").onclick = null;
  document.getElementById("button_check_coordinates").setAttribute("onclick", "null");
 });
 
@@ -217,3 +221,61 @@ socket.on('client_IP', function(data)
  console.log(logtime() + "[ DATA ] Recieved my IP: " + data);
  document.getElementById("client_identification").innerHTML = data;
 });
+
+
+
+// Destination has changed
+socket.on('change_destination', function(data)
+{
+ console.log(logtime() + "[ INFO ] DESTINATION CHANGED TO: " + data);
+ destination = data;
+ document.getElementById("destination").innerHTML = destination;
+});
+
+
+
+// Destination unreachable - reset all input and show a warning box
+socket.on('destination_unreachable', function(data)
+{
+ console.log(logtime() + "[ INFO ] DESTINATION UNREACHABLE: " + data);
+ // Reset the board and everything
+ destination = ""
+ var board = "";
+ for(var i = 0; i<81; i++) board+="0";
+ new_sudoku(board)
+
+ // Spawn box with a warning
+ var destination_unreachable = document.createElement("DIV");
+ destination_unreachable.setAttribute("id", "destination_unreachable");
+ destination_unreachable.setAttribute("class", "text_red");
+ var destination_unreachable_text = document.createTextNode("CÍLOVÁ DESTINACE NENÍ DOAŽITELNÁ !!!!!");
+ destination_unreachable.appendChild(destination_unreachable_text);
+ document.body.appendChild(destination_unreachable);
+});
+
+
+// Nickname has changed
+socket.on('change_nickname', function(data)
+{
+ console.log(logtime() + "[ DATA ] Recieved new nickname: " + data);
+ var nickname_element = document.getElementById("nickname");
+ if (nickname_element != null) document.getElementById("nickname").innerHTML = data;
+ else document.getElementById("client_identification").innerHTML += "<br /><span id='nickname'>"+data+"</span>";
+});
+
+
+
+// My role has changed
+socket.on('change_role', function(data)
+{
+ console.log(logtime() + "[ DATA ] Recieved new role: " + data);
+ // TODO
+ var nickname_element = document.getElementById("nickname");
+ if (nickname_element != null)
+   {
+    console.log(logtime() + "[ INFO ] Creating cookie NICKNAME");
+    setCookie("nickname", document.getElementById("nickname").innerHTML, 1)
+   }
+ window.location.href = "/" + data;
+});
+

@@ -20,7 +20,7 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
 
 
 // Once loaded, notify the server that we are online
-// Also register our client_type (user, admin, ...)
+// Also register our client_role (user, admin, ...)
 socket.on('connect', function()
 {
  console.log(logtime() + "[ INFO ] Recieved message CONNECT");
@@ -29,7 +29,7 @@ socket.on('connect', function()
    {
     message: 'Render on the client has been successful!',
     server_uid: server_uid,
-    type: client_type
+    role: client_role
    });
 });
 
@@ -46,7 +46,7 @@ socket.on('server_uid', function(data)
   {
    console.log(logtime() + "[ INFO ] Creating cookie SERVER_UID");
    setCookie("server_uid", data["server_uid"], 1)
-   document.cookie = "server_uid="+data["server_uid"];
+   //document.cookie = "server_uid="+data["server_uid"];
    console.log(logtime() + "[ INFO ] Reloading");
    location.reload();
   }
@@ -66,7 +66,8 @@ socket.on('server_uid', function(data)
 // Notify server, that the client decided to leave the page
 window.onbeforeunload = function()
 {
- socket.emit('client_leaving', "client_leaving");
+ // Handled automaticly by SockeIO
+ //socket.emit('client_leaving', "client_leaving");
  console.log(logtime() + "[ INFO ] Leaving page");
 };
 

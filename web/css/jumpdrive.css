@@ -94,16 +94,18 @@ input:read-only {
 /* --------------------------------------------------------------
      OTHER
 -------------------------------------------------------------- */
-#generating_progress {
+#generating_progress, #destination_unreachable {
 	position: absolute;
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
         font-size: 300%;
+        text-align: center;
 }
 
 #client_identification{
 	position: absolute;
         right: 0px;
         bottom: 0px;
+        text-align: center;
 }
