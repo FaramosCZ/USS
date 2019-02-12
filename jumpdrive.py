@@ -114,6 +114,9 @@ TODO priority:
   software we need a single Master-Admin console aggregating all admin pages, allowing the
   operator to administer them easily.
 
+* logger does not respect global variable "debug"
+
+
 '''
 
 from flask import Flask, render_template, send_from_directory, request
@@ -134,8 +137,6 @@ from sudoku import main
 
 ### This will be the Unique ID of this instance of the server
 server_uid = hex(getrandbits(128))
-server_uid_json = {}
-server_uid_json["server_uid"] = server_uid
 
 ### Let the Flask app initialize
 app = Flask("new_project", template_folder='web')
@@ -144,6 +145,113 @@ socketio = SocketIO(app)
 
 ### Debug option
 debug = False
+
+### ROLES
+# This list is based on what is actually available in the application. Do not change
+roles = ("admin", "player")
+
+
+
+
+
+
+
+
+
+### OOP
+### Object of a single route
+class route:
+    '''This class is supposed to hold all information server has available about a single route (jump from point A to point B)'''
+    destination = ""
+    difficulty = "Easy"
+    sudoku_data = ""
+    sudoku_data_generated_solution = ""
+    sudoku_data_player_solution = ""
+    status = "not_started" # ("not_started", "generated", "solved", "jumping")
+    jump = ""
+    jump_time_sec = 60
+
+
+### Object holding all of the routes
+class list_of_routes:
+    max_routes = 1
+    dict_of_routes = {}
+
+### Object of a single client
+class client:
+    sid = ""
+    IP = ""
+    role = ""
+    nickname = ""
+
+    def __init__(self, sid, ip, role=roles[0], nickname=""):
+        self.sid = sid; self.ip = ip; self.role = role; self.nickname = nickname
+
+    def set_nickname(self, nickname):
+        self.nickname = nickname
+    def get_nickname(self):
+        return self.nickname
+
+    def set_role(self, role):
+        self.role = role
+    def get_role(self):
+        return self.role
+
+    def get_ip(self):
+        return self.ip
+
+### Object holding all of the clients
+class list_of_clients:
+    dict_of_clients = {}
+
+    def add_client(self, sid, ip, role=roles[0], nickname=""):
+        self.dict_of_clients[sid] = client(sid, ip, role, nickname)
+        admin_data_feed('admin')
+    def del_client(self, sid):
+        if not self.dict_of_clients.pop(sid, None):
+            log.error("TRIED TO DELETE CLIENT WHICH WAS NOT IN A LIST OF CLIENTS !")
+            return False
+        admin_data_feed('admin')
+
+    def set_nickname(self, sid, nickname):
+        self.dict_of_clients[sid].set_nickname(nickname)
+        admin_data_feed('admin')
+    def get_nickname(self, sid):
+        return self.dict_of_clients[sid].get_nickname()
+
+    def set_role(self, sid, role):
+        if role in roles:
+            self.dict_of_clients[sid].set_role(role)
+        else:
+            log.error("TRIED TO SET CLIENT ROLE THAT DOES NOT EXIST !")
+            return False
+        admin_data_feed('admin')
+    def get_role(self, sid):
+        return self.dict_of_clients[sid].get_role()
+
+    def get_ip(self, sid):
+        return self.dict_of_clients[sid].get_ip()
+
+    def get_dict_of_clients(self):
+        # Style:   { sid: { "IP": IP, "nickname" : nickname, "role": role } }
+        result = {}
+        for key in self.dict_of_clients:
+            result[key] = {}
+            result[key]["IP"] = self.get_ip(key)
+            result[key]["nickname"] = self.get_nickname(key)
+            result[key]["role"] = self.get_role(key)
+        # Extreme debug:
+        #log.debug("SENT CLIENTS INFO: " + str(result) )
+        return result
+
+
+
+
+
+
+
+
+
 
 
 
@@ -156,11 +264,8 @@ sudoku_data_solved = ""
 status = "not_started" # ("not_started", "generated", "solved", "jumping")
 jump = ""
 jump_time_sec = 60
-# Style:   { sid: { "IP": IP, "nickname" : nickname, "role": role } }
-client_list = {}
 
-### ROLES
-roles = ("admin", "player")
+
 
 
 
@@ -173,9 +278,9 @@ def admin_data_feed(admin_sid):
     json_data_to_send["jump"] = jump
     json_data_to_send["jump_time_sec"] = jump_time_sec
     json_data_to_send["roles"] = roles
-    json_data_to_send["client_list"] = client_list
-    log.debug('FEEDING ADMIN: ' + request.remote_addr )
+    json_data_to_send["client_list"] = clients.get_dict_of_clients()
     socketio.emit("admin_data_feed", json_data_to_send, json=True, broadcast=False, room=admin_sid)
+    log.debug('    FEEDING ADMINS: ' + request.remote_addr )
      
 
 
@@ -223,6 +328,23 @@ def admin_index():
 
 
 ### Define events which will the clients send to me
+@socketio.on('connect')
+def client_joining():
+    clients.add_client(request.sid, request.remote_addr, nickname=request.remote_addr)
+    log.debug('CLIENT JOINED SERVER: ' + clients.get_nickname(request.sid) )
+
+
+
+@socketio.on('disconnect')
+def client_leaving():
+    log.debug('CLIENT LEAVED SERVER: ' + clients.get_nickname(request.sid) )
+    clients.del_client(request.sid)
+
+
+
+
+
+
 @socketio.on('status_info')
 def status_info(json):
     """When a new updated instance of the server is run, make sure, that client have the
@@ -231,55 +353,58 @@ def status_info(json):
     If the client holds different value, it means it was created with older version of
     the server and thus we need it to save the current UID and reload itself to get the
     latest changes made to the websites.
-
     Once the server UID is correct, move clients into rooms as needed."""
-    log.info('RECIEVED STATUS_INFO: ' + str( json["message"] ))
-    log.info('CLIENT IP: ' + request.remote_addr)
-    # Add client to the list of clients
-    global client_list
-    client_list[str(request.sid)] = {}
-    client_list[str(request.sid)]["IP"] = str(request.remote_addr)
-    # Update nickname, if some is set
-    log.info('CLIENT NICKNAME: ' + str( json["nickname"] ))
-    if str( json["nickname"] ) != "" :
-        client_list[str(request.sid)]["nickname"] = str( json["nickname"] )
-    else:
-        client_list[str(request.sid)]["nickname"] = str(request.remote_addr)
-    log.debug('SAVED NICKNAME: ' + client_list[str(request.sid)]["nickname"])
-    log.debug('CLIENT UID: ' +  request.sid)
+
+    log.debug('RECIEVED STATUS_INFO: ' + str(json["message"]) + " FROM: " + request.remote_addr )
+    log.debug('  CLIENT UID: ' +  request.sid )
+
+    # Check server UID saved on the client side
     if ( str(json["server_uid"]) != server_uid ):
-        log.debug('  CLIENT SIDE STORED SERVER_UID: ' + str( json["server_uid"] ))
-        log.warn('  SERVER_UID MISMATCH, sending the client a reload request')
-        socketio.emit("server_uid", server_uid_json, json=True, broadcast=False, room=request.sid)
-    else :
-        log.info('  SERVER_UID MATCH')
-        # Notify admins about a new client
-        admin_data_feed('admins')
-        # Up-to-date clients are added to the room "clients",
-        # so we can later broadcast messages to the whole room
-        join_room('clients')
-        log.debug('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "CLIENTS"')
-        # Later distinguish between roles of the clients
-        if ( str(json["role"]) == "player" ):
-            client_list[str(request.sid)]["role"] = "player"
-            join_room('users')
-            log.info('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "USERS"')
-        elif ( str(json["role"]) == "admin" ):
-            client_list[str(request.sid)]["role"] = "admin"
-            join_room('admins')
-            log.info('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "ADMINS"')
-        admin_data_feed('admins')
-        # Send client it's IP
-        socketio.emit("client_IP", request.remote_addr, json=False, broadcast=False, room=request.sid)
-        # If the puzzle has already been solved, send the solution:
-        if status == "solved" :
-            json_data_to_send = {}
-            json_data_to_send["destination"] = destination
-            json_data_to_send["sudoku_data"] = sudoku_data_solved
-            socketio.emit("sudoku_solved_confirmed", json_data_to_send, json=True, broadcast=False, room=request.sid)
-        # If a puzzle has already been distributed, send it to the new client:
-        elif status == "generated" :
-            socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room=request.sid)
+        log.debug('  CLIENT SIDE STORED SERVER_UID: ' + str(json["server_uid"]) )
+        log.debug('  SERVER_UID MISMATCH, sending the client a reload request' )
+        socketio.emit("server_uid", server_uid, json=False, broadcast=False, room=request.sid)
+        # In this case, client will need to reload, so it will quit and join server again
+        return
+    log.info('  SERVER_UID MATCH')
+    # Up-to-date clients are added to the room "clients", so we can later broadcast messages to the whole room
+    join_room('clients')
+    log.debug('  CLIENT '+clients.get_nickname(request.sid)+' HAS JOINED THE ROOM "CLIENTS"')
+
+    # Update client nickname, if some is set
+    log.info('  CLIENT SIDE STORED NICKNAME: ' + str(json["nickname"]) )
+    if str(json["nickname"]) != "" :
+        clients.set_nickname(request.sid, str(json["nickname"]) )
+        log.debug('  SAVED NICKNAME: ' + clients.get_nickname(request.sid) )
+
+    # Update client role, if some is set
+    log.info('  CLIENT SIDE STORED ROLE: ' + str(json["role"]) )
+    if str(json["role"]) != "" :
+        if clients.set_role(request.sid, str(json["role"]) ) == False :
+            # Roles are accepted only those explicitly named in 'roles' tuple
+            socketio.emit("role_unknown", str(json["role"]), json=False, broadcast=False, room=request.sid)
+            return
+        log.debug('  SAVED ROLE: ' + clients.get_role(request.sid) )
+
+    # Default rooms are named exactly same as the available roles
+    join_room(clients.get_role(request.sid))
+    log.info('  CLIENT '+clients.get_nickname(request.sid)+' HAS JOINED THE ROOM: '+clients.get_role(request.sid))
+
+    # Send client it's IP, because it is unable to find it out with JS
+    socketio.emit("client_IP", request.remote_addr, json=False, broadcast=False, room=request.sid)
+
+    # If an admin joined, feed him
+    if clients.get_role(request.sid) == "admin":
+        admin_data_feed(request.sid)
+
+    # If the puzzle has already been solved, send the solution:
+    if status == "solved" :
+       json_data_to_send = {}
+       json_data_to_send["destination"] = destination
+       json_data_to_send["sudoku_data"] = sudoku_data_solved
+       socketio.emit("sudoku_solved_confirmed", json_data_to_send, json=True, broadcast=False, room=request.sid)
+    # If a puzzle has already been distributed, send it to the new client:
+    elif status == "generated" :
+       socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room=request.sid)
 
 
 
@@ -304,7 +429,7 @@ def new_sudoku_request(json):
     sudoku_generated_solution = results[1]
     log.debug('NEW SUDOKU: ' + str(sudoku_data) )
     log.debug('SOLUTION:   ' + str(sudoku_generated_solution) )
-    admin_data_feed('admins')
+    admin_data_feed('admin')
     socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room='clients')
 
 
@@ -347,7 +472,7 @@ def sudoku_solved(json):
     json_data_to_send = {}
     json_data_to_send["destination"] = destination
     json_data_to_send["sudoku_data"] = sudoku_data_solved
-    admin_data_feed('admins')
+    admin_data_feed('admin')
     socketio.emit("sudoku_solved_confirmed", json_data_to_send, json=True, broadcast=False, room='clients')
 
 
@@ -371,9 +496,9 @@ def change_destination(data):
     log.info('CHANGING DESTINATION TO: ' + data)
     global destination
     destination = data
-    admin_data_feed('admins')
+    admin_data_feed('admin')
     if status == "solved" or status == "jumping":
-        socketio.emit("change_destination", data, json=False, broadcast=False, room='users')
+        socketio.emit("change_destination", data, json=False, broadcast=False, room='player')
 
 
 
@@ -392,8 +517,8 @@ def destination_unreachable(data):
     status = "not_started"
     global jump
     jump = ""
-    socketio.emit("destination_unreachable", data, json=False, broadcast=False, room='users')
-    admin_data_feed('admins')
+    socketio.emit("destination_unreachable", data, json=False, broadcast=False, room='player')
+    admin_data_feed('admin')
 
 
 
@@ -402,7 +527,7 @@ def change_jump_time(data):
     log.info('CHANGING JUMP TIME TO: ' + data + ' seconds')
     global jump_time_sec
     jump_time_sec = data
-    admin_data_feed('admins')
+    admin_data_feed('admin')
 
 
 
@@ -411,39 +536,35 @@ def change_difficulty(data):
     log.info('CHANGING DIFFICULTY TO: ' + data )
     global difficulty
     difficulty = data
-    admin_data_feed('admins')
+    admin_data_feed('admin')
 
 
 
 @socketio.on('change_nickname')
 def change_nickname(json):
-    log.info('CHANGING NICKNAME OF: ' + str( json["sid"] ) + " TO: " + str( json["nickname"] ))
-    socketio.emit("change_nickname", str( json["nickname"] ), json=False, broadcast=False, room=str( json["sid"] ))
-    global client_list
-    client_list[str( json["sid"] )]["nickname"] = str( json["nickname"] )
-    admin_data_feed('admins')
+    log.info('CHANGING NICKNAME OF: ' + clients.get_nickname(str(json["sid"])) + " TO: " + str(json["nickname"]) )
+    clients.set_nickname(str(json["sid"]), str(json["nickname"]) )
+    # Notify the particular client, that his nickname has changed
+    socketio.emit("change_nickname", clients.get_nickname(str(json["sid"])), json=False, broadcast=False, room=str( json["sid"] ))
 
 
 
 @socketio.on('change_role')
 def change_role(json):
-    log.info('CHANGING ROLE OF: ' + str( json["sid"] ) + " TO: " + str( json["role"] ))
-    socketio.emit("change_role", str( json["role"] ), json=False, broadcast=False, room=str( json["sid"] ))
-
-
-
-@socketio.on('disconnect')
-def client_leaving():
-    log.info('CLIENT LEAVING: ' + request.remote_addr )
-    global client_list
-    del client_list[str(request.sid)]
-    admin_data_feed('admins')
+    log.info('CHANGING ROLE OF: ' + clients.get_nickname(request.sid) + " TO: " + str(json["role"]) )
+    if clients.set_role(request.sid, str(json["role"]) ) == False:
+        # Desired role does not exist
+        return
+    # Notify the particular client, that his role has changed
+    socketio.emit("change_role", clients.get_role(request.sid), json=False, broadcast=False, room=str( json["sid"] ))
 
 
 
 @socketio.on('admin_data_feed')
 def updating_admin(data):
     admin_data_feed(request.sid)
+
+
 
 
 
@@ -494,10 +615,15 @@ def configure_logger(enabled_logger='default', level='DEBUG', log_path='./logs/'
 ### MUST be at the end of file, after all socketio parameters has been defined !!
 if __name__ == '__main__':
     print(" ")
-    log = configure_logger()
+    # Create logger instance
+    log = configure_logger(level="INFO")
+    # Declare the master objects of this application
+    clients = list_of_clients()
+    routes = list_of_routes()
+    # Start the server
     log.info('SERVER STARTED: ' + datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
     log.debug('SERVER UID: ' + server_uid)
     ip = gethostbyname(gethostname())
     log.info('SERVER IP: ' + ip)
-    socketio.run(app, debug=False, host=ip)
+    socketio.run(app, debug=False, host=ip, port=5000)
 

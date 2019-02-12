@@ -44,13 +44,11 @@ socket.on('connect', function()
 // we need to reload our page to get up-to-date content.
 socket.on('server_uid', function(data)
 {
- console.log(logtime() + "[ INFO ] Recieved message SERVER_UID");
- console.log(logtime() + "[ INFO ] Recieved data:"+data);
- console.log(logtime() + "[ INFO ] Server UID:"+data["server_uid"]);
- if (server_uid != data["server_uid"])
+ console.log(logtime() + "[ INFO ] Recieved new SERVER_UID: "+data);
+ if (server_uid != data)
   {
    console.log(logtime() + "[ INFO ] Creating session storage key pair SERVER_UID");
-   sessionStorage.setItem('server_uid', data["server_uid"]);
+   sessionStorage.setItem('server_uid', data);
    console.log(logtime() + "[ INFO ] Reloading");
    location.reload();
   }
