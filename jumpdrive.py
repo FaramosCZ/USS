@@ -164,10 +164,6 @@ roles = ("admin", "player")
 
 
 
-### Function to write nice server log:
-log = lambda : datetime.now().strftime("%H:%M:%S ")
-
-
 ### Function to give admin all the data
 def admin_data_feed(admin_sid):
     json_data_to_send = {}
@@ -178,8 +174,7 @@ def admin_data_feed(admin_sid):
     json_data_to_send["jump_time_sec"] = jump_time_sec
     json_data_to_send["roles"] = roles
     json_data_to_send["client_list"] = client_list
-    if debug:
-        print( log() + '[ INFO ] FEEDING ADMIN: ' + request.remote_addr )
+    log.debug('FEEDING ADMIN: ' + request.remote_addr )
     socketio.emit("admin_data_feed", json_data_to_send, json=True, broadcast=False, room=admin_sid)
      
 
@@ -208,22 +203,19 @@ def send_css(path):
 ### Returns the default webpage for the user
 @app.route('/')
 def user_index():
-    if debug:
-        print( log() + '[ INFO ] INDEX RENDERED')
+    log.debug('INDEX RENDERED')
     return render_template('index.html')
 
 ### Returns the admin default webpage
 @app.route('/player')
 def player_index():
-    if debug:
-        print( log() + '[ INFO ] PLAYER RENDERED')
+    log.debug('PLAYER RENDERED')
     return render_template('index.html')
 
 ### Returns the admin default webpage
 @app.route('/admin')
 def admin_index():
-    if debug:
-        print( log() + '[ INFO ] ADMIN RENDERED')
+    log.debug('ADMIN RENDERED')
     return render_template('admin.html')
 
 
@@ -241,45 +233,41 @@ def status_info(json):
     latest changes made to the websites.
 
     Once the server UID is correct, move clients into rooms as needed."""
-    print( log() + '[ INFO ] RECIEVED STATUS_INFO: ' + str( json["message"] ))
-    print( log() + '[ DATA ] CLIENT IP: ' + request.remote_addr)
+    log.info('RECIEVED STATUS_INFO: ' + str( json["message"] ))
+    log.info('CLIENT IP: ' + request.remote_addr)
     # Add client to the list of clients
     global client_list
     client_list[str(request.sid)] = {}
     client_list[str(request.sid)]["IP"] = str(request.remote_addr)
     # Update nickname, if some is set
-    print( log() + '[ DATA ] CLIENT NICKNAME: ' + str( json["nickname"] ))
+    log.info('CLIENT NICKNAME: ' + str( json["nickname"] ))
     if str( json["nickname"] ) != "" :
         client_list[str(request.sid)]["nickname"] = str( json["nickname"] )
     else:
         client_list[str(request.sid)]["nickname"] = str(request.remote_addr)
-    if debug:
-        print( log() + '[ DATA ] SAVED NICKNAME: ' + client_list[str(request.sid)]["nickname"])
-    if debug:
-        print( log() + '[ DATA ] CLIENT UID: ' +  request.sid)
+    log.debug('SAVED NICKNAME: ' + client_list[str(request.sid)]["nickname"])
+    log.debug('CLIENT UID: ' +  request.sid)
     if ( str(json["server_uid"]) != server_uid ):
-        if debug:
-            print( log() + '[ DATA ]   CLIENT SIDE STORED SERVER_UID:' + str( json["server_uid"] ))
-        print( log() + '[ WARN ]   SERVER_UID MISMATCH, sending the client a reload request')
+        log.debug('  CLIENT SIDE STORED SERVER_UID: ' + str( json["server_uid"] ))
+        log.warn('  SERVER_UID MISMATCH, sending the client a reload request')
         socketio.emit("server_uid", server_uid_json, json=True, broadcast=False, room=request.sid)
     else :
-        print( log() + '[  OK  ]   SERVER_UID MATCH')
+        log.info('  SERVER_UID MATCH')
         # Notify admins about a new client
         admin_data_feed('admins')
         # Up-to-date clients are added to the room "clients",
         # so we can later broadcast messages to the whole room
         join_room('clients')
-        if debug:
-            print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "CLIENTS"')
+        log.debug('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "CLIENTS"')
         # Later distinguish between roles of the clients
         if ( str(json["role"]) == "player" ):
             client_list[str(request.sid)]["role"] = "player"
             join_room('users')
-            print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "USERS"')
+            log.info('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "USERS"')
         elif ( str(json["role"]) == "admin" ):
             client_list[str(request.sid)]["role"] = "admin"
             join_room('admins')
-            print( log() + '[ INFO ]   CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "ADMINS"')
+            log.info('  CLIENT '+request.remote_addr+' HAS JOINED THE ROOM "ADMINS"')
         admin_data_feed('admins')
         # Send client it's IP
         socketio.emit("client_IP", request.remote_addr, json=False, broadcast=False, room=request.sid)
@@ -299,24 +287,23 @@ def status_info(json):
 @socketio.on('new_sudoku_request')
 def new_sudoku_request(json):
     """Generate new sudoku"""
-    print( log() + '[ INFO ] RECIEVED MESSAGE: ' + str( json["message"] ))
-    print( log() + '[ INFO ] RECIEVED DESTINATION: ' + str( json["destination"] ))
+    log.info('RECIEVED MESSAGE: ' + str( json["message"] ))
+    log.info('RECIEVED DESTINATION: ' + str( json["destination"] ))
     global status
     status = "generated"
     global sudoku_data_solved
     sudoku_data_solved = ""
     global destination
     destination = str( json["destination"] )
-    print( log() + '[ INFO ] GENERATING NEW SUDOKU' )
+    log.info('GENERATING NEW SUDOKU' )
 
     results = main(difficulty)
     global sudoku_data
     sudoku_data = results[0]
     global sudoku_generated_solution
     sudoku_generated_solution = results[1]
-    if debug:
-        print( log() + '[ DATA ] NEW SUDOKU: ' + str(sudoku_data) )
-        print( log() + '[ DATA ] SOLUTION:   ' + str(sudoku_data) )
+    log.debug('NEW SUDOKU: ' + str(sudoku_data) )
+    log.debug('SOLUTION:   ' + str(sudoku_generated_solution) )
     admin_data_feed('admins')
     socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room='clients')
 
@@ -325,35 +312,33 @@ def new_sudoku_request(json):
 @socketio.on('sudoku_solved')
 def sudoku_solved(json):
     """Check solved sudoku"""
-    if debug:
-        print( log() + '[ INFO ] RECIEVED SUDOKU: ' + str( json["sudoku"] ))
-    else:
-        print( log() + '[ INFO ] RECIEVED SUDOKU')
+    log.info('RECIEVED SUODKU')
+    log.debug('RECIEVED SUODKU: ' + str( json["sudoku"] ))
     global sudoku_data
     global generated_solution
     # First check if the player guessed the same solution as was generated
     if not sudoku_generated_solution == str( json["sudoku"] ):
         # Else check the solution manually
         if len(str( json["sudoku"] )) != 81 :
-            print( log() + '[ ERR! ] RECIEVED SUDOKU CHECK FAILED - TOO SHORT!')
+            log.warning('RECIEVED SUDOKU CHECK FAILED - TOO SHORT!')
             socketio.emit("sudoku_solved_denied", "RECIEVED_LENGTH", json=False, broadcast=False, room=request.sid)
             return
         elif len(sudoku_data) != 81 :
-            print( log() + '[ ERR! ] STORED SUDOKU CHECK FAILED - TOO SHORT!')
+            log.warning('STORED SUDOKU CHECK FAILED - TOO SHORT!')
             socketio.emit("sudoku_solved_denied", "STORED_LENGTH", json=False, broadcast=False, room=request.sid)
             return
         for i in range(81) :
             if not "1" <= str( json["sudoku"] )[i] <= "9":
-                print( log() + '[ ERR! ] RECIEVED SUDOKU IS NOT COMPLETED - CHECK FAILED ON POSITION: ' + str(i+1))
+                log.warning('RECIEVED SUDOKU IS NOT COMPLETED - CHECK FAILED ON POSITION: ' + str(i+1))
                 socketio.emit("sudoku_solved_denied", "RECIEVED_NOT_COMPLETED", json=False, broadcast=False, room=request.sid)
                 return
             elif sudoku_data[i] == "0" :
                 continue
             elif sudoku_data[i] != str( json["sudoku"] )[i] :
-                print( log() + '[ ERR! ] RECIEVED SUDOKU CHECK FAILED ON POSITION: ' + str(i+1))
+                log.warning('RECIEVED SUDOKU CHECK FAILED ON POSITION: ' + str(i+1))
                 socketio.emit("sudoku_solved_denied", "RECIEVED_DOES_NOT_MATCH_STORED", json=False, broadcast=False, room=request.sid)
                 return
-    print( log() + '[ INFO ] SENDING DESTINATION: ' + destination)
+    log.info('SENDING DESTINATION: ' + destination)
     global status
     status = "solved"
     global sudoku_data_solved
@@ -369,7 +354,7 @@ def sudoku_solved(json):
 
 @socketio.on('instantly_solve')
 def instantly_solve(data):
-    print( log() + '[ INFO ] RECIEVED REQUEST TO SOLVE INSTANTLY: ')
+    log.info('RECIEVED REQUEST TO SOLVE INSTANTLY')
     if not sudoku_data:
         json_data_to_send = {}
         json_data_to_send["message"] = "Server request to generate new Sudoku"
@@ -383,7 +368,7 @@ def instantly_solve(data):
 
 @socketio.on('change_destination')
 def change_destination(data):
-    print( log() + '[ DATA ] CHANGING DESTINATION TO: ' + data)
+    log.info('CHANGING DESTINATION TO: ' + data)
     global destination
     destination = data
     admin_data_feed('admins')
@@ -394,7 +379,7 @@ def change_destination(data):
 
 @socketio.on('destination_unreachable')
 def destination_unreachable(data):
-    print( log() + '[ DATA ] DESTINATION UNREACHABLE: ' + data)
+    log.info('DESTINATION UNREACHABLE: ' + data)
     global destination
     destination = ""
     global sudoku_data
@@ -414,7 +399,7 @@ def destination_unreachable(data):
 
 @socketio.on('change_jump_time')
 def change_jump_time(data):
-    print( log() + '[ INFO ] CHANGING JUMP TIME TO: ' + data + ' seconds')
+    log.info('CHANGING JUMP TIME TO: ' + data + ' seconds')
     global jump_time_sec
     jump_time_sec = data
     admin_data_feed('admins')
@@ -423,7 +408,7 @@ def change_jump_time(data):
 
 @socketio.on('change_difficulty')
 def change_difficulty(data):
-    print( log() + '[ INFO ] CHANGING DIFFICULTY TO: ' + data )
+    log.info('CHANGING DIFFICULTY TO: ' + data )
     global difficulty
     difficulty = data
     admin_data_feed('admins')
@@ -432,7 +417,7 @@ def change_difficulty(data):
 
 @socketio.on('change_nickname')
 def change_nickname(json):
-    print( log() + '[ INFO ] CHANGING NICKNAME OF: ' + str( json["sid"] ) + " TO: " + str( json["nickname"] ))
+    log.info('CHANGING NICKNAME OF: ' + str( json["sid"] ) + " TO: " + str( json["nickname"] ))
     socketio.emit("change_nickname", str( json["nickname"] ), json=False, broadcast=False, room=str( json["sid"] ))
     global client_list
     client_list[str( json["sid"] )]["nickname"] = str( json["nickname"] )
@@ -442,14 +427,14 @@ def change_nickname(json):
 
 @socketio.on('change_role')
 def change_role(json):
-    print( log() + '[ INFO ] CHANGING ROLE OF: ' + str( json["sid"] ) + " TO: " + str( json["role"] ))
+    log.info('CHANGING ROLE OF: ' + str( json["sid"] ) + " TO: " + str( json["role"] ))
     socketio.emit("change_role", str( json["role"] ), json=False, broadcast=False, room=str( json["sid"] ))
 
 
 
 @socketio.on('disconnect')
 def client_leaving():
-    print( log() + '[ INFO ] CLIENT LEAVING: ' + request.remote_addr )
+    log.info('CLIENT LEAVING: ' + request.remote_addr )
     global client_list
     del client_list[str(request.sid)]
     admin_data_feed('admins')
@@ -462,14 +447,57 @@ def updating_admin(data):
 
 
 
+### Setup logger
+def configure_logger(enabled_logger='default', level='DEBUG', log_path='./logs/', log_name='log_' + datetime.now().strftime("%d.%m.%Y_%H_%M") ):
+    """ Setup logger to both console and a log file."""
+    import logging
+    import logging.config
+
+    import os
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
+ 
+    logging.config.dictConfig({
+        'version': 1,
+        'formatters': {
+            'default': {'format': '%(asctime)s [ %(levelname).4s ] %(message)s', 'datefmt': '%H:%M:%S'}
+        },
+        'handlers': {
+            'console': {
+                'level': level,
+                'class': 'logging.StreamHandler',
+                'formatter': 'default',
+                'stream': 'ext://sys.stdout'
+            },
+            'file': {
+                'level': level,
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'default',
+                'filename': log_path+"/"+log_name,
+                'maxBytes': 1024,
+                'backupCount': 3
+            }
+        },
+        'loggers': {
+            'default': {
+                'level': level,
+                'handlers': ['console', 'file']
+            }
+        },
+        'disable_existing_loggers': False
+    })
+    return logging.getLogger(enabled_logger)
+
+
 
 
 ### MUST be at the end of file, after all socketio parameters has been defined !!
 if __name__ == '__main__':
     print(" ")
-    print( log() + '[ INFO ] SERVER STARTED: ' + datetime.now().strftime("%d.%m.%Y %H:%M:%S") )
-    if debug:
-        print( log() + '[ DATA ] SERVER UID: ' + server_uid)
+    log = configure_logger()
+    log.info('SERVER STARTED: ' + datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
+    log.debug('SERVER UID: ' + server_uid)
     ip = gethostbyname(gethostname())
-    print( log() + '[ DATA ] SERVER IP: ' + ip)
+    log.info('SERVER IP: ' + ip)
     socketio.run(app, debug=False, host=ip)
+
