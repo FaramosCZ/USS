@@ -98,11 +98,6 @@ TODO:
 
 TODO priority:
 
-* Player should get a box explaining the rules of the Sudoku puzzle.
-
-* Server should allow the players to ask for mutliple destinations. The client should have a
-  list of destinations form current location, allowing multiple clients to solve any of them.
-  Other clients would no longer discard solved Sudokus.
 * Server should hold a database of know jumps (routes). If the players would travel often
   between two points, the shouldn't need to compute them again for a certain time.
 * In both above cases, server needs to save a permanent data file with those information.
@@ -116,6 +111,9 @@ TODO priority:
 
 * logger does not respect global variable "debug"
 
+* Player should get a box explaining the rules of the Sudoku puzzle.
+
+* Move player page away from web "index"
 
 '''
 
@@ -143,6 +141,8 @@ app = Flask("new_project", template_folder='web')
 app.config['SECRET_KEY'] = 'secret!_' + hex(getrandbits(128))
 socketio = SocketIO(app)
 
+
+
 ### Debug option
 debug = False
 
@@ -163,24 +163,94 @@ roles = ("admin", "player")
 class route:
     '''This class is supposed to hold all information server has available about a single route (jump from point A to point B)'''
     destination = ""
-    difficulty = "Easy"
+    difficulty = ""
     sudoku_data = ""
     sudoku_data_generated_solution = ""
     sudoku_data_player_solution = ""
-    status = "not_started" # ("not_started", "generated", "solved", "jumping")
+    status = "not_started" # ("not_started", "generated", "solved", "jumping", "blocked")
     jump = ""
     jump_time_sec = 60
+
+    def __init__(self, destination, difficulty):
+        self.destination = destination; self.difficulty = difficulty
+
+    def set_sudoku_data(self, data):
+        self.sudoku_data = data
+    def set_sudoku_data_generated_solution(self, data):
+        self.sudoku_data_generated_solution = data
+    def set_sudoku_data_player_solution(self, data):
+        self.sudoku_data_player_solution = data
+
+    def set_status(self, data):
+        self.status = data
+    def set_destination(self, data):
+        self.destination = data
+    def set_difficulty(self, data):
+        self.difficulty = data
+    def set_jump_time(self, data):
+        self.jump_time_sec = data
 
 
 ### Object holding all of the routes
 class list_of_routes:
     max_routes = 1
+    global_difficulty = "Easy"
     dict_of_routes = {}
+
+    def add_route(self, destination):
+        self.dict_of_routes[destination] = route(destination, self.global_difficulty)
+        admin_data_feed('admin')
+    def del_route(self, destination):
+        if not self.dict_of_routes.pop(destination, None):
+            log.error("TRIED TO DELETE ROUTE WHICH WAS NOT IN A LIST OF ROUTES !")
+            return False
+        admin_data_feed('admin')
+
+    def set_global_difficulty(self, value):
+        self.global_difficulty = value
+
+    def set_max_routes(self, value):
+        self.max_routes = value
+
+    def change_destination(self, current_destination, new_destination):
+        if not current_destination in self.dict_of_routes:
+            log.error("TRIED TO UPDATE DESTINATION WHICH WAS NOT IN A LIST OF ROUTES !")
+            return False
+        if new_destination in self.dict_of_routes:
+            log.error("TRIED TO UPDATE DESTINATION TO ONE WHICH ALREADY IS IN A LIST OF ROUTES !")
+            return False
+
+        found = False
+        list_of_keys = list(self.dict_of_routes.keys()) # Can't iterate over dict I'm modifying
+        for key in list_of_keys:
+            if not found:
+                if key == current_destination:
+                    found = True
+                    self.dict_of_routes[new_destination] = self.dict_of_routes.pop(current_destination)
+                    self.dict_of_routes[new_destination].set_destination(new_destination)
+            else:
+                self.dict_of_routes[key] = self.dict_of_routes.pop(key)
+
+
+    def get_dict_of_routes(self):
+        result = {}
+        for key in self.dict_of_routes:
+            result[key] = {}
+            result[key]["destination"] = self.dict_of_routes[key].destination
+            result[key]["difficulty"] = self.dict_of_routes[key].difficulty
+            result[key]["sudoku_data"] = self.dict_of_routes[key].sudoku_data
+            result[key]["sudoku_data_generated_solution"] = self.dict_of_routes[key].sudoku_data_generated_solution
+            result[key]["sudoku_data_player_solution"] = self.dict_of_routes[key].sudoku_data_player_solution
+            result[key]["status"] = self.dict_of_routes[key].status
+            result[key]["jump"] = self.dict_of_routes[key].jump
+            result[key]["jump_time_sec"] = self.dict_of_routes[key].jump_time_sec
+        return result
 
 ### Object of a single client
 class client:
+    '''This class is supposed to hold all information server has available about a single connected client'''
     sid = ""
-    IP = ""
+    ip = ""
     role = ""
     nickname = ""
 
@@ -237,9 +307,9 @@ class list_of_clients:
         result = {}
         for key in self.dict_of_clients:
             result[key] = {}
-            result[key]["IP"] = self.get_ip(key)
-            result[key]["nickname"] = self.get_nickname(key)
-            result[key]["role"] = self.get_role(key)
+            result[key]["IP"] = self.dict_of_clients[key].ip
+            result[key]["nickname"] = self.dict_of_clients[key].nickname
+            result[key]["role"] = self.dict_of_clients[key].role
         # Extreme debug:
         #log.debug("SENT CLIENTS INFO: " + str(result) )
         return result
@@ -255,33 +325,21 @@ class list_of_clients:
 
 
 
-### GLOBAL INFORMATION
-destination = ""
-difficulty = "Easy"
-sudoku_data = ""
-sudoku_generated_solution = ""
-sudoku_data_solved = ""
-status = "not_started" # ("not_started", "generated", "solved", "jumping")
-jump = ""
-jump_time_sec = 60
 
 
 
-
-
-### Function to give admin all the data
+### Function to give admin(s) all the data
 def admin_data_feed(admin_sid):
-    json_data_to_send = {}
-    json_data_to_send["destination"] = destination
-    json_data_to_send["difficulty"] = difficulty
-    json_data_to_send["status"] = status
-    json_data_to_send["jump"] = jump
-    json_data_to_send["jump_time_sec"] = jump_time_sec
-    json_data_to_send["roles"] = roles
-    json_data_to_send["client_list"] = clients.get_dict_of_clients()
+    json_data_to_send = {"max_routes": routes.max_routes, "global_difficulty": routes.global_difficulty, "routes_list": routes.get_dict_of_routes(), "clients_list": clients.get_dict_of_clients(), "roles": roles}
     socketio.emit("admin_data_feed", json_data_to_send, json=True, broadcast=False, room=admin_sid)
     log.debug('    FEEDING ADMINS: ' + request.remote_addr )
-     
+
+### Function to give player(s) all the data
+def player_data_feed(player_sid):
+    json_data_to_send = {"max_routes": routes.max_routes, "global_difficulty": routes.global_difficulty, "routes_list": routes.get_dict_of_routes()}
+    socketio.emit("players_data_feed", json_data_to_send, json=True, broadcast=False, room=player_sid)
+    log.debug('    FEEDING PLAYERS: ' + request.remote_addr )
+
 
 
 
@@ -327,13 +385,11 @@ def admin_index():
 
 
 
-### Define events which will the clients send to me
+### Events on client CONNECT and DISCONNECT
 @socketio.on('connect')
 def client_joining():
     clients.add_client(request.sid, request.remote_addr, nickname=request.remote_addr)
     log.debug('CLIENT JOINED SERVER: ' + clients.get_nickname(request.sid) )
-
-
 
 @socketio.on('disconnect')
 def client_leaving():
@@ -344,7 +400,28 @@ def client_leaving():
 
 
 
+### Events modifying attributes of the clients connected to server
+@socketio.on('change_nickname')
+def change_nickname(json):
+    log.info('CHANGING NICKNAME OF: ' + clients.get_nickname(str(json["sid"])) + " TO: " + str(json["nickname"]) )
+    clients.set_nickname(str(json["sid"]), str(json["nickname"]) )
+    # Notify the particular client, that his nickname has changed
+    socketio.emit("change_nickname", clients.get_nickname(str(json["sid"])), json=False, broadcast=False, room=str( json["sid"] ))
 
+@socketio.on('change_role')
+def change_role(json):
+    log.info('CHANGING ROLE OF: ' + clients.get_nickname(request.sid) + " TO: " + str(json["role"]) )
+    if clients.set_role(request.sid, str(json["role"]) ) == False:
+        # Desired role does not exist
+        return
+    # Notify the particular client, that his role has changed
+    socketio.emit("change_role", clients.get_role(request.sid), json=False, broadcast=False, room=str( json["sid"] ))
+
+
+
+
+
+### Main event filling up server data structures and feeding client. This should be first message sent by any client.
 @socketio.on('status_info')
 def status_info(json):
     """When a new updated instance of the server is run, make sure, that client have the
@@ -355,7 +432,7 @@ def status_info(json):
     latest changes made to the websites.
     Once the server UID is correct, move clients into rooms as needed."""
 
-    log.debug('RECIEVED STATUS_INFO: ' + str(json["message"]) + " FROM: " + request.remote_addr )
+    log.debug('RECIEVED STATUS_INFO: ' + str(json["message"]) + " FROM: " + clients.get_nickname(request.sid) )
     log.debug('  CLIENT UID: ' +  request.sid )
 
     # Check server UID saved on the client side
@@ -396,49 +473,54 @@ def status_info(json):
     if clients.get_role(request.sid) == "admin":
         admin_data_feed(request.sid)
 
-    # If the puzzle has already been solved, send the solution:
-    if status == "solved" :
-       json_data_to_send = {}
-       json_data_to_send["destination"] = destination
-       json_data_to_send["sudoku_data"] = sudoku_data_solved
-       socketio.emit("sudoku_solved_confirmed", json_data_to_send, json=True, broadcast=False, room=request.sid)
-    # If a puzzle has already been distributed, send it to the new client:
-    elif status == "generated" :
-       socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room=request.sid)
+    # If a player joined, feed him
+    if clients.get_role(request.sid) == "player":
+        player_data_feed(request.sid)
 
 
 
 
-@socketio.on('new_sudoku_request')
-def new_sudoku_request(json):
-    """Generate new sudoku"""
-    log.info('RECIEVED MESSAGE: ' + str( json["message"] ))
-    log.info('RECIEVED DESTINATION: ' + str( json["destination"] ))
-    global status
-    status = "generated"
-    global sudoku_data_solved
-    sudoku_data_solved = ""
-    global destination
-    destination = str( json["destination"] )
-    log.info('GENERATING NEW SUDOKU' )
+### Events modifying routes (players data)
+@socketio.on('add_route')
+def add_route(data):
+    if not data:
+        log.warning('RECIEVED ADD_ROUTE REQUEST WITH AN EMTPY NAME!')
+        return False
+    log.info('RECIEVED ADD_ROUTE REQUEST FROM: ' + clients.get_nickname(request.sid) + ' TO: ' + data)
+    routes.add_route(data)
+    # Generate new Sudoku for this route
+    result = main(routes.global_difficulty)
+    routes.dict_of_routes[data].set_sudoku_data(result[0])
+    routes.dict_of_routes[data].set_sudoku_data_generated_solution(result[1])
+    routes.dict_of_routes[data].set_status("generated")
+    log.debug('NEW SUDOKU: ' + routes.dict_of_routes[data].sudoku_data )
+    log.debug('SOLUTION:   ' + routes.dict_of_routes[data].sudoku_data_generated_solution )
+    player_data_feed('player')
 
-    results = main(difficulty)
-    global sudoku_data
-    sudoku_data = results[0]
-    global sudoku_generated_solution
-    sudoku_generated_solution = results[1]
-    log.debug('NEW SUDOKU: ' + str(sudoku_data) )
-    log.debug('SOLUTION:   ' + str(sudoku_generated_solution) )
-    admin_data_feed('admin')
-    socketio.emit("new_sudoku", sudoku_data, json=False, broadcast=False, room='clients')
+@socketio.on('del_route')
+def del_route(data):
+    log.info('RECIEVED DEL_ROUTE REQUEST FROM: ' + clients.get_nickname(request.sid) + ' TO: ' + data)
+    routes.del_route(data)
+    player_data_feed('player')
+
 
 
 
 @socketio.on('sudoku_solved')
 def sudoku_solved(json):
     """Check solved sudoku"""
-    log.info('RECIEVED SUODKU')
-    log.debug('RECIEVED SUODKU: ' + str( json["sudoku"] ))
+    log.info('RECIEVED SOLVED SUDOKU')
+    log.debug('RECIEVED SOLVED SUODKU: ' + str(json["sudoku"]) )
+
+    routes.dict_of_routes[str(json["destination"])].set_sudoku_data_player_solution(str(json["sudoku"]))
+
+    routes.dict_of_routes[str(json["destination"])].set_status("solved")
+    admin_data_feed('admin')
+    player_data_feed('player')
+    return
+    ### TODO AFTER RETURN
+
+
     global sudoku_data
     global generated_solution
     # First check if the player guessed the same solution as was generated
@@ -477,92 +559,121 @@ def sudoku_solved(json):
 
 
 
-@socketio.on('instantly_solve')
-def instantly_solve(data):
-    log.info('RECIEVED REQUEST TO SOLVE INSTANTLY')
-    if not sudoku_data:
-        json_data_to_send = {}
-        json_data_to_send["message"] = "Server request to generate new Sudoku"
-        json_data_to_send["destination"] = destination
-        new_sudoku_request(json_data_to_send)
-    json_data_to_send = {}
-    json_data_to_send["sudoku"] = sudoku_generated_solution
-    sudoku_solved(json_data_to_send)
+
+
+
+
+
+
+
 
 
 
 @socketio.on('change_destination')
-def change_destination(data):
-    log.info('CHANGING DESTINATION TO: ' + data)
-    global destination
-    destination = data
+def change_destination(json):
+    log.info('CHANGING DESTINATION FROM: ' + str(json["destination"]) + ' TO: ' + str(json["new_destination"]) )
+    routes.change_destination(str(json["destination"]), str(json["new_destination"]))
     admin_data_feed('admin')
-    if status == "solved" or status == "jumping":
-        socketio.emit("change_destination", data, json=False, broadcast=False, room='player')
+    player_data_feed('player')
 
 
 
 @socketio.on('destination_unreachable')
 def destination_unreachable(data):
     log.info('DESTINATION UNREACHABLE: ' + data)
-    global destination
-    destination = ""
-    global sudoku_data
-    sudoku_data = ""
-    global sudoku_generated_solution
-    sudoku_generated_solution = ""
-    global sudoku_data_solved
-    sudoku_data_solved = ""
-    global status
-    status = "not_started"
-    global jump
-    jump = ""
-    socketio.emit("destination_unreachable", data, json=False, broadcast=False, room='player')
+    routes.dict_of_routes[data].set_status("blocked")
+    admin_data_feed('admin')
+    player_data_feed('player')
+
+
+
+@socketio.on('generate_new_sudoku')
+def generate_new_sudoku(data):
+    log.info('GENERATE NEW SUDOKU FOR: ' + data)
+    result = main(routes.dict_of_routes[data].difficulty)
+
+    routes.dict_of_routes[data].set_sudoku_data(result[0])
+    routes.dict_of_routes[data].set_sudoku_data_generated_solution(result[1])
+    routes.dict_of_routes[data].set_status("generated")
+
+    log.debug('NEW SUDOKU: ' + routes.dict_of_routes[data].sudoku_data )
+    log.debug('SOLUTION:   ' + routes.dict_of_routes[data].sudoku_data_generated_solution )
+
+    admin_data_feed('admin')
+    player_data_feed('player')
+
+
+
+@socketio.on('instantly_solve')
+def instantly_solve(data):
+    log.info('RECIEVED REQUEST TO SOLVE INSTANTLY')
+    json_data_to_send = {}
+    json_data_to_send["destination"] = data
+    json_data_to_send["sudoku"] = routes.dict_of_routes[data].sudoku_data_generated_solution
+    sudoku_solved(json_data_to_send)
+
+
+
+@socketio.on('change_difficulty')
+def change_difficulty(json):
+    log.info('CHANGING DIFFICULTY TO: ' + str(json["difficulty"]) + " FOR: " + str(json["destination"]) )
+    routes.dict_of_routes[str(json["destination"])].set_difficulty(str(json["difficulty"]))
     admin_data_feed('admin')
 
 
 
 @socketio.on('change_jump_time')
-def change_jump_time(data):
-    log.info('CHANGING JUMP TIME TO: ' + data + ' seconds')
-    global jump_time_sec
-    jump_time_sec = data
+def change_jump_time(json):
+    log.info('CHANGING JUMP_TIME TO: ' + str(json["jump_time"]) + " FOR: " + str(json["destination"]) )
+    routes.dict_of_routes[str(json["destination"])].set_jump_time(str(json["jump_time"]))
+    admin_data_feed('admin')
+    player_data_feed('player')
+
+
+
+@socketio.on('change_global_difficulty')
+def change_global_difficulty(data):
+    log.info('CHANGING GLOBAL DIFFICULTY TO: ' + data )
+    routes.set_global_difficulty(data)
     admin_data_feed('admin')
 
 
 
-@socketio.on('change_difficulty')
-def change_difficulty(data):
-    log.info('CHANGING DIFFICULTY TO: ' + data )
-    global difficulty
-    difficulty = data
+@socketio.on('change_global_max_routes')
+def change_global_max_routes(data):
+    log.info('CHANGING GLOBAL MAX ROUTES TO: ' + data )
+    routes.set_max_routes(data)
+    player_data_feed('player')
     admin_data_feed('admin')
 
 
 
-@socketio.on('change_nickname')
-def change_nickname(json):
-    log.info('CHANGING NICKNAME OF: ' + clients.get_nickname(str(json["sid"])) + " TO: " + str(json["nickname"]) )
-    clients.set_nickname(str(json["sid"]), str(json["nickname"]) )
-    # Notify the particular client, that his nickname has changed
-    socketio.emit("change_nickname", clients.get_nickname(str(json["sid"])), json=False, broadcast=False, room=str( json["sid"] ))
-
-
-
-@socketio.on('change_role')
-def change_role(json):
-    log.info('CHANGING ROLE OF: ' + clients.get_nickname(request.sid) + " TO: " + str(json["role"]) )
-    if clients.set_role(request.sid, str(json["role"]) ) == False:
-        # Desired role does not exist
-        return
-    # Notify the particular client, that his role has changed
-    socketio.emit("change_role", clients.get_role(request.sid), json=False, broadcast=False, room=str( json["sid"] ))
-
-
-
+# Sometimes we need to send current data on demand
 @socketio.on('admin_data_feed')
 def updating_admin(data):
     admin_data_feed(request.sid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -608,6 +719,7 @@ def configure_logger(enabled_logger='default', level='DEBUG', log_path='./logs/'
         'disable_existing_loggers': False
     })
     return logging.getLogger(enabled_logger)
+
 
 
 

@@ -3,251 +3,48 @@
 <head>
 </head>
 
-<script type="text/javascript" charset="utf-8">
-// Define type of our client. This type is sent to the server as a part of "connect" message
-var client_role = "admin";
-</script>
 <script type="text/javascript" src="/js/socket.io.min.js"></script>
 <script type="text/javascript" src="/js/common_socketio.js"></script>
-<script type="text/javascript" charset="utf-8">
-
-
-socket.on('admin_data_feed', function(data)
-{
- console.log(logtime() + "[ DATA ] Recieved data feed: ");
- console.log(data);
-
-
- // STATUS
- switch(data["status"])
-   {
-    // No client has even asked for a new Sudoku
-    case "not_started":
-      document.getElementById("status").innerHTML = "Žádné Sudoku ještě nebylo vygenerováno";
-      document.getElementById("button_instantly_solve").style.display = "initial";
-      document.getElementById("jump_countdown").style.display = "none";
-      document.getElementById("jump_now").style.display = "none";
-      break;
-    // Any client asked for a new sudoku and it is now ready to be solved
-    case "generated":
-      document.getElementById("status").innerHTML = "Sudoku bylo vygenerováno. Je možné jej řešit";
-      document.getElementById("button_instantly_solve").style.display = "initial";
-      document.getElementById("jump_countdown").style.display = "none";
-      document.getElementById("jump_now").style.display = "none";
-      break;
-    // Sudoku solved
-    case "solved":
-      document.getElementById("status").innerHTML = "Sudoku bylo vyřešeno, jsme připraveni ke skoku";
-      document.getElementById("button_instantly_solve").style.display = "none";
-      document.getElementById("jump_countdown").style.display = "initial";
-      document.getElementById("jump_now").style.display = "initial";
-      break
-    // Doing a jump
-    case "jumping":
-      document.getElementById("status").innerHTML = "!! Skáčeme !!";
-      document.getElementById("button_instantly_solve").style.display = "none";
-      document.getElementById("jump_countdown").style.display = "none";
-      document.getElementById("jump_now").style.display = "initial";
-      break
-    default:
-      document.getElementById("status").innerHTML = "ERROR: nerozpoznáno";
-      console.log(logtime() + "[ ERR! ] Status message has not been recognized: " + data["status"] );
-   }
-
-
- // DESTINATION
- if( data["destination"] == "" ) document.getElementById("button_destination_unreachable").style.display = "none";
- else document.getElementById("button_destination_unreachable").style.display = "initial";
- document.getElementById("destination").value = data["destination"];
-
- // DIFFICULTY
- document.getElementById("difficulty_easy").removeAttribute("selected");
- document.getElementById("difficulty_medium").removeAttribute("selected");
- document.getElementById("difficulty_hard").removeAttribute("selected");
- document.getElementById("difficulty_insane").removeAttribute("selected");
- switch(data["difficulty"])
-   {
-    case "Easy":
-      document.getElementById("difficulty_easy").setAttribute("selected", "");
-      break;
-    case "Medium":
-      document.getElementById("difficulty_medium").setAttribute("selected", "");
-      break;
-    case "Hard":
-      document.getElementById("difficulty_hard").setAttribute("selected", "");
-      break;
-    case "Insane":
-      document.getElementById("difficulty_insane").setAttribute("selected", "");
-      break;
-   }
-
-
- // JUMP TIME
- document.getElementById("jump_time").value = data["jump_time_sec"];
-
-
- // LIST OF CONNECTED CLIENTS
- var i = 0;
- document.getElementById("list_of_clients").innerHTML = "";
- for( client in data["client_list"] )
-   {
-    var sid = Object.keys(data["client_list"])[i];
-    var line = "<span title="+sid+">IP: "+data["client_list"][sid]["IP"]+" </span> ";
-    line += " <input title='nickname' type='text' id='nickname_"+sid+"' onchange='change_nickname(this.id, this.value)' value='"+data["client_list"][sid]["nickname"]+"' /> ";
-
-    // roles
-    line += " <select id='role_"+sid+"' onchange='change_role(this.id, this.value)'>"
-    for( role in data["roles"] )
-      {
-       line += "<option value='"+data["roles"][role]+"'";
-       if ( data["client_list"][sid]["role"] == data["roles"][role] ) line += " selected";
-       line += " \>"+data["roles"][role]+"</option>"
-      }
-
-    line += "</select> <br />";
-
-    document.getElementById("list_of_clients").innerHTML += line;
-    i++;
-   }
-
-});
-
-
-
-// Requesting new sudoku. Don't care if players are already solving one or if they have any solved
-function new_sudoku()
-{
- var destination;
- // First of all, ask admin for the name of his desired destination
- while(1)
-   {
-    var result = prompt("Zadejte cílovou destinaci");
-    if ( result == null ) return false;
-    if ( result == "" ) { alert("Je nutné zadat destinaci!!"); continue; }
-    destination = result;
-    console.log(logtime() + "[ DATA ] Destination: " + destination );
-    break;
-   }
- document.getElementById("destination").value = destination;
- console.log(logtime() + "[ INFO ] Sending request for a new Sudoku");
- socket.emit('new_sudoku_request', { message: "Admin request to generate new sudoku", destination: destination });
-}
-
-// Requesting server to instantly solve the sudoku
-function instantly_solve()
-{
- if( document.getElementById("destination").value == "" ){ if( new_sudoku() == false) return;}
- console.log(logtime() + "[ INFO ] Sending request to solve the Sudoku instantly");
- socket.emit('instantly_solve', " ");
-}
-
-// Requesting server to instantly solve the sudoku
-function change_destination()
-{
- console.log(logtime() + "[ INFO ] Changing destination to: " + document.getElementById("destination").value);
- socket.emit('change_destination', document.getElementById("destination").value);
-}
-
-// Requesting server to instantly solve the sudoku
-function destination_unreachable()
-{
- destination="";
- console.log(logtime() + "[ INFO ] Making destination unreachable");
- socket.emit('destination_unreachable', document.getElementById("destination").value);
-}
-
-// Change difficulty
-function change_difficulty()
-{
- console.log(logtime() + "[ INFO ] Changing difficulty to: " + document.getElementById("difficulty").value);
- socket.emit('change_difficulty', document.getElementById("difficulty").value);
-}
-
-// Jump with classic countdown
-function jump_countdown()
-{
- console.log(logtime() + "[ INFO ] Starting jump countdown: " + document.getElementById("jump_time").value + " seconds");
- socket.emit('jump_countdown', destination);
-}
-
-// Jump right now
-function jump_now()
-{
- console.log(logtime() + "[ INFO ] Starting jump immediatelly!");
- socket.emit('jump_now', destination);
-}
-
-// Change jump time
-function change_jump_time()
-{
- if ( document.getElementById("jump_time").checkValidity() == false )
-   {
-    document.getElementById("jump_time").style.border = "1px solid red";
-    return;
-   }
- document.getElementById("jump_time").style.borderColor = "initial";
- console.log(logtime() + "[ INFO ] Changing jump time to: " + document.getElementById("jump_time").value);
- socket.emit('change_jump_time', document.getElementById("jump_time").value);
-}
-
-// Change nickname of a specified client
-function change_nickname(id, value)
-{
- var sid = id.substring(9);
- console.log(logtime() + "[ INFO ] Changing nickname of: " + sid + " to: " + value);
- socket.emit('change_nickname', {sid: sid, nickname: value});
-}
-
-// Change role of a specified client
-function change_role(id, value)
-{
- var sid = id.substring(5);
- console.log(logtime() + "[ INFO ] Changing role of: " + sid + " to: " + value);
- socket.emit('change_role', {sid: sid, role: value});
-}
-
-</script>
+<script type="text/javascript" src="/js/common_data_structures.js"></script>
+<script type="text/javascript" src="/js/jumpdrive_admin.js"></script>
 
 <body class="" >
 
-<div id="" class="" > STATUS: 
-  <span id="status"></span>
-</div>
-<button id="button_new_sudoku" class="" onclick="new_sudoku()"> VYGENEROVAT NOVÉ SUDOKU | VYMAZAT ŘEŠENÍ </button>
-<button id="button_instantly_solve" class="" onclick="instantly_solve()"> VYGENEROVAT ŘEŠENÍ SUDOKU </button>
+  <div style="font-weight:bold;"> GLOBÁLNÍ NASTAVENÍ: </div>
+  <div id="global_settings">
+    Nastavit výchozí obtížnost: <select onchange="change_global_difficulty(this.value)">
+      <option id="global_difficulty_easy" value="Easy" selected="">Lehké</option>
+      <option id="global_difficulty_medium" value="Medium">Střední</option>
+      <option id="global_difficulty_hard" value="Hard">Težké</option>
+      <option id="global_difficulty_insane" value="Insane">Extrémní</option>
+    </select>
+    <br />
+    Nastavit maximum možných destinací: <input id="global_max_routes" type="text" size="3" pattern="[1-9][0-9]*" onchange="change_global_max_routes(this.value)">
+    <br />
+    Přidat destinaci:  <input id="add_destination" type="text" onchange="admin_add_destination(this.value)">
+    <br />    
+    Vymazat destinaci: <select id="delete_destination" onchange="admin_del_destination(this.value)">
+    </select>
 
-<br /><br />
+  </div>
 
-<div>OBTÍŽNOST: 
-<select id="difficulty" onchange="change_difficulty()">
-  <option id="difficulty_easy" value="Easy">Lehké</option>
-  <option id="difficulty_medium" value="Medium">Střední</option>
-  <option id="difficulty_hard" value="Hard">Težké</option>
-  <option id="difficulty_insane" value="Insane">Extrémní</option>
-</select>
-</div>
+  <br />
 
-<br />
+  <span style="font-weight:bold;"> SEZNAM KOORDINÁT: </span>
+  <table id="coordinates_table" ></table>
 
-<div>DESTINACE: 
-  <input type=text id="destination" />
-  <button id="button_change_destination" onclick="change_destination()"> PŘEPSAT DESTINACI </button>
-</div>
-<button id="button_destination_unreachable" onclick="destination_unreachable()"> NASTAVIT DESTINACI JAKO NEDOSAŽITELNOU (a resetovat sudoku) </button> 
+  <br />
 
-<br /><br />
-
-<div> POČET VTEŘIN PŘED SKOKEM: 
-  <input type=text id="jump_time" size=3 pattern="[1-9][0-9]*" onchange="change_jump_time()" /><br />
-  <button id="jump_countdown" onclick="jump_countdown()"> ZAHÁJIT SKOK S ODPOČTEM </button>
-  <button id="jump_now" onclick="jump_now()"> SKOČIT HNED TEĎ </button>
-</div>
-
-<br />
-
-<div>SEZNAM PŘIPOJENÝCH KLIENTŮ:<br />
+  <div style="font-weight:bold;"> SEZNAM PŘIPOJENÝCH KLIENTŮ: </div>
   <div id="list_of_clients"></div>
-</div>
 
 </body>
+
+<style>
+
+#coordinates_table, #coordinates_table tr, #coordinates_table tr td{
+	border: 1px solid black;
+}
+</style>
+
 </html>

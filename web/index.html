@@ -8,127 +8,142 @@
 <script type="text/javascript" src="/js/socket.io.min.js"></script>
 
 <script type="text/javascript" src="/js/common_socketio.js"></script>
-<script type="text/javascript" src="/js/jumpdrive.js"></script>
+<script type="text/javascript" src="/js/common_data_structures.js"></script>
+<script type="text/javascript" src="/js/jumpdrive_player.js"></script>
 
 <script type="text/javascript" charset="utf-8">
 
 </script>
 
 <body class="body_blue">
-
 <div class="header text_blue"> Skokový pohon </div>
 
-<table class="sudoku_wrapper">
-  <tr id="row_1">
-    <td><input id="cell_11" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_12" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_13" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_14" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_15" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_16" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_17" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_18" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_19" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_2">
-    <td><input id="cell_21" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_22" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_23" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_24" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_25" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_26" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_27" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_28" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_29" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_3">
-    <td><input id="cell_31" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_32" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_33" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_34" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_35" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_36" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_37" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_38" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_39" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_4">
-    <td><input id="cell_41" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_42" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_43" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_44" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_45" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_46" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_47" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_48" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_49" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_5">
-    <td><input id="cell_51" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_52" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_53" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_54" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_55" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_56" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_57" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_58" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_59" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_6">
-    <td><input id="cell_61" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_62" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_63" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_64" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_65" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_66" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_67" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_68" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_69" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_7">
-    <td><input id="cell_71" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_72" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_73" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_74" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_75" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_76" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_77" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_78" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_79" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_8">
-    <td><input id="cell_81" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_82" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_83" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_84" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_85" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_86" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_87" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_88" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_89" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-  <tr id="row_9">
-    <td><input id="cell_91" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_92" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_93" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_94" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_95" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_96" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_97" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_98" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-    <td><input id="cell_99" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
-  </tr>
-</table>
 
 
-<center>
-  <button id="button_new_coordinates" class="button_blue" onclick="generate_new_sudoku()"> Nové koordináty </button>
-  <button id="button_check_coordinates" class="button_blue" onclick="check_solved_sudoku()"> Potvrdit vypočítané koordináty </button>
-  <br /><br />
-  <div class="jump_status"> 
-    <div id="jump_pass" class="text_green_full jump_pass"> KOORDINÁTY ZADÁNY <br /> SKOK PŘIPRAVEN <br />Destinace: <span id="destination"></span></div>
-    <div id="jump_fail" class="text_red_full jump_fail"> KOORDINÁTY NEPOTVRZENY <br /> SKOK NENÍ PŘIPRAVEN </div>
-</center>
+<div class="body_container">
+
+  <div class="left_container">
+	<div class="list_of_coordinates text_blue">
+	  <span>Seznam koordinát:</span>
+	  <div id="list_of_coordinates"></div>
+	  <button id="x" class="button_blue" onclick="add_route_player(get_destination())" > Nové koordináty </button>
+	</div>
+  </div>
+
+  <div class="center_container">
+
+	<table class="sudoku_wrapper">
+	  <tr id="row_1">
+	    <td><input id="cell_11" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_12" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_13" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_14" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_15" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_16" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_17" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_18" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_19" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_2">
+	    <td><input id="cell_21" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_22" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_23" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_24" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_25" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_26" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_27" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_28" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_29" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_3">
+	    <td><input id="cell_31" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_32" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_33" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_34" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_35" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_36" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_37" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_38" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_39" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_4">
+	    <td><input id="cell_41" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_42" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_43" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_44" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_45" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_46" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_47" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_48" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_49" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_5">
+	    <td><input id="cell_51" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_52" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_53" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_54" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_55" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_56" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_57" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_58" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_59" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_6">
+	    <td><input id="cell_61" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_62" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_63" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_64" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_65" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_66" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_67" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_68" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_69" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_7">
+	    <td><input id="cell_71" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_72" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_73" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_74" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_75" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_76" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_77" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_78" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_79" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_8">
+	    <td><input id="cell_81" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_82" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_83" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_84" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_85" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_86" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_87" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_88" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_89" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	  <tr id="row_9">
+	    <td><input id="cell_91" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_92" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_93" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_94" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_95" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_96" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_97" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_98" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	    <td><input id="cell_99" class="cell" type="text" value="" maxlength="1" pattern="[0-9]" onchange="check_user_input(this.id)" /></td>
+	  </tr>
+	</table>
+
+  </div>
+
+  <div class="right_container">
+	<div class="list_of_coordinates text_blue">
+	  <span>Podrobnosti:</span>
+	  <div id="list_of_details"></div>
+	</div>
+  </div>
+
+</div>
 
 <div id="client_identification" class="text_blue"></div>
 

@@ -66,6 +66,7 @@
 	border-radius: 0px 15px 0px 0px;
 	display: inline-block;
 	cursor: pointer;
+        text-align: left;
 
 	transition: background-color 0.05s;
 }
