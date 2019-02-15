@@ -113,7 +113,6 @@ TODO priority:
 
 ---------
 
-* Client should enforce BLOCKED state
 * Enforce max_routes; enlarge default value
 
 * Player should get a box explaining the rules of the Sudoku puzzle.

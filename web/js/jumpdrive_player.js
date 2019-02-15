@@ -113,13 +113,17 @@ function show_details(id)
  result += "<table id='details_table'>";
  result += "<tr><td>Cíl: </td><td>"+ routes.array_of_routes[routes.active]["destination"] + "</td></tr>";
  result += "<tr><td>Status: </td><td>"+ routes.array_of_routes[routes.active]["status"] + "</td></tr>";
- //result += "Jump: "+ routes.array_of_routes[routes.active]["jump"] + "<br />";
  result += "<tr><td title='Počet vteřin, jež bude trvat příprava kde skoku, správné nastavení a zážeh motorů. Po tuto dobu je ještě stále možné skok zrušit'>";
  result += "Čas (?):&nbsp;&nbsp;</td><td>"+ routes.array_of_routes[routes.active]["jump_time_sec"] + " sec</td></tr>";
  result += "</table><br />";
- result += "<button id='button_check_coordinates' class='button_blue' onclick='check_solved_sudoku(\""+routes.active+"\")'> Potvrdit výpočet </button>";
+ if (routes.array_of_routes[routes.active]["status"] == "blocked")
+   { result += "<button id='button_blocked' class='button_red' onclick='alert(\"VÝPOČET ZABLOKOVÁN\")'> ZABLOKOVÁNO </button>"; }
+ else
+   { result += "<button id='button_check_coordinates' class='button_blue' onclick='check_solved_sudoku(\""+routes.active+"\")'> Potvrdit výpočet </button>"; }
  result += "<button id='button_del_coordinates' class='button_blue' onclick='del_route_player(\""+routes.active+"\")'> Vymazat záznam </button>";
  result += "<br /><br />";
+ if (routes.array_of_routes[routes.active]["status"] == "blocked")
+   { result += "<div id='jump_fail' class='text_red_full jump_fail'> ! ZABLOKOVÁNO ! </div>"; }
  result += "<div id='jump_fail' class='text_red_full jump_fail'> KOORDINÁTY NEPOTVRZENY <br /><hr /> SKOK NENÍ PŘIPRAVEN </div>";
  result += "<div id='jump_pass' class='text_green_full jump_pass'> SKOK PŘIPRAVEN <br /><hr /> >>> SKOČIT <<< </div>";
  document.getElementById("list_of_details").innerHTML = result;
@@ -137,6 +141,13 @@ function show_details(id)
     document.getElementById("jump_fail").style.display = "none";
    }
  else { prepare_board(routes.array_of_routes[routes.active]["sudoku_data"]) }
+
+ if (routes.array_of_routes[routes.active]["status"] == "blocked")
+   {
+    prepare_board("                                                                                 ");
+    document.getElementById("jump_pass").style.display = "none";
+    document.getElementById("jump_fail").style.display = "none";
+   }
 }
 
 
@@ -156,6 +167,9 @@ function empty_board()
       }
    }
 }
+
+
+
 function prepare_board(data)
 {
  // Prepare board to its default, empty state
