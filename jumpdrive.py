@@ -111,9 +111,15 @@ TODO priority:
 
 * logger does not respect global variable "debug"
 
-* Player should get a box explaining the rules of the Sudoku puzzle.
+---------
 
-* Move player page away from web "index"
+* Client should enforce BLOCKED state
+* Enforce max_routes; enlarge default value
+
+* Player should get a box explaining the rules of the Sudoku puzzle.
+	vlevo dole
+
+* Admin text "generuji"
 
 '''
 
@@ -148,7 +154,7 @@ debug = False
 
 ### ROLES
 # This list is based on what is actually available in the application. Do not change
-roles = ("admin", "player")
+roles = ("default", "admin", "player")
 
 
 
@@ -363,19 +369,20 @@ def send_js(path):
 def send_css(path):
     return send_from_directory('web/css', path)
 
-### Returns the default webpage for the user
+### Returns the default webpage
 @app.route('/')
-def user_index():
+@app.route('/default')
+def default_index():
     log.debug('INDEX RENDERED')
     return render_template('index.html')
 
-### Returns the admin default webpage
+### Returns the player webpage
 @app.route('/player')
 def player_index():
     log.debug('PLAYER RENDERED')
-    return render_template('index.html')
+    return render_template('player.html')
 
-### Returns the admin default webpage
+### Returns the admin webpage
 @app.route('/admin')
 def admin_index():
     log.debug('ADMIN RENDERED')
