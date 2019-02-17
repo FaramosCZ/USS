@@ -7,41 +7,12 @@
 
 <!--script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script-->
 <script type="text/javascript" src="/js/socket.io.min.js"></script>
-
 <script type="text/javascript" src="/js/common_socketio.js"></script>
+<script type="text/javascript" src="/js/common_functions.js"></script>
+
 <script type="text/javascript" charset="utf-8">
 
 var client_role = "default";
-
-socket.on('change_role', function(data)
-{
- console.log(logtime() + "[ DATA ] Recieved new role: " + data);
- window.location.href = "/" + data;
-});
-
-// Recieve and store client IP
-socket.on('client_IP', function(data)
-{
- console.log(logtime() + "[ DATA ] Recieved my IP: " + data);
- document.getElementById("client_identification").innerHTML = data;
- // Also update a nickname, if one is stored
- if( sessionStorage.getItem('nickname') != null ) change_nickname(sessionStorage.getItem('nickname'));
-});
-
-// Change nickname
-function change_nickname(data)
-{
- console.log(logtime() + "[ DATA ] Recieved new nickname: " + data);
- var nickname_element = document.getElementById("nickname");
- if (nickname_element != null) document.getElementById("nickname").innerHTML = data;
- else document.getElementById("client_identification").innerHTML += "<br /><span id='nickname'>"+data+"</span>";
-
- console.log(logtime() + "[ INFO ] Creating session storage key pair NICKNAME");
- sessionStorage.setItem('nickname', data);
-}
-
-// Nickname has changed
-socket.on('change_nickname', function(data){ change_nickname(data); });
 
 </script>
 

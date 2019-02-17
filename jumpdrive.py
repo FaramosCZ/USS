@@ -198,11 +198,14 @@ class route:
 
 ### Object holding all of the routes
 class list_of_routes:
-    max_routes = 1
+    max_routes = 10
     global_difficulty = "Easy"
     dict_of_routes = {}
 
     def add_route(self, destination):
+        if len(self.dict_of_routes) >= self.max_routes:
+            log.error("MAXIMUM NUMBER OF ROUTES EXCEEDED !")
+            return False
         self.dict_of_routes[destination] = route(destination, self.global_difficulty)
         admin_data_feed('admin')
     def del_route(self, destination):
@@ -215,7 +218,7 @@ class list_of_routes:
         self.global_difficulty = value
 
     def set_max_routes(self, value):
-        self.max_routes = value
+        self.max_routes = int(value)
 
     def change_destination(self, current_destination, new_destination):
         if not current_destination in self.dict_of_routes:
@@ -394,8 +397,8 @@ def admin_index():
 ### Events on client CONNECT and DISCONNECT
 @socketio.on('connect')
 def client_joining():
+    log.debug('CLIENT JOINED SERVER: ' + request.remote_addr )
     clients.add_client(request.sid, request.remote_addr, nickname=request.remote_addr)
-    log.debug('CLIENT JOINED SERVER: ' + clients.get_nickname(request.sid) )
 
 @socketio.on('disconnect')
 def client_leaving():

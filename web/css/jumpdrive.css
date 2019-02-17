@@ -97,7 +97,7 @@ input:read-only {
 /* --------------------------------------------------------------
      OTHER
 -------------------------------------------------------------- */
-#generating_progress, #destination_unreachable {
+#generating_progress, #destination_unreachable, #error_max_routes {
 	position: absolute;
 	left: 50%;
 	top: 50%;
@@ -237,5 +237,4 @@ width: 40%;
 #details_table tr td:first-child {
 	font-weight: bold;
 }
-
 

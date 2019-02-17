@@ -369,6 +369,10 @@ function admin_add_destination(destination)
 {
  if( destination == "" ) { console.log(logtime() + "[ ERR! ] Cannot create destination with an empty name!"); return false; }
 
+ // We can't add new route, if the maximum number of routes were already reached
+ if( routes.current_routes >= routes.max_routes )
+   {alert("!! ERROR !! \n\n Maximální počet destinací dosažen"); return false;}
+
  if( routes.array_of_routes.hasOwnProperty(destination) )
    {
     console.log(logtime() + "[ ERR! ] Can't change destination to one which already is in the list of destinations!");

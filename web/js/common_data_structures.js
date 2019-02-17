@@ -32,6 +32,7 @@ class list_of_routes {
     constructor()
     {
      this.max_routes        = 0;
+     this.current_routes    = 0;
      this.array_of_routes   = {};
      this.active            = "";
      this.global_difficulty = "";
@@ -48,6 +49,7 @@ class list_of_routes {
 
      for (var single_route in data["routes_list"])
        {
+        this.current_routes++;
         this.array_of_routes[single_route] = new route();
         for (var key in data["routes_list"][single_route])
           {

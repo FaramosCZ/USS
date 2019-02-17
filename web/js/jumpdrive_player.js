@@ -11,10 +11,32 @@ var client_role = "player";
 
 function add_route_player(destination)
 {
+ // We don't accept an empty destination name
  if( destination == "" ) { console.log(logtime() + "[ ERR! ] Cannot create destination with an empty name!"); return false; }
 
+ // We can't add new route, if the maximum number of routes were already reached
+ if( routes.current_routes >= routes.max_routes )
+   {
+    console.log(logtime() + "[ ERR! ] Maximum nuber of routes reached!");
+
+    // Spawn a box saying the error message
+    var error_max_routes = document.createElement("DIV");
+    error_max_routes.setAttribute("id", "error_max_routes");
+    error_max_routes.setAttribute("class", "text_red_full");
+    document.body.appendChild(error_max_routes);
+    document.getElementById("error_max_routes").innerHTML = "!! ERROR !! <br /> Maximální počet destinací dosažen"
+    // Delete the spawned box after few seconds
+    setTimeout( function()
+       {
+        var error_max_routes_element = document.getElementById("error_max_routes");
+        if (error_max_routes_element != null) error_max_routes_element.remove();
+       }, 3000);
+
+    return false;
+   }
+
  // Now we want to send request to the server for a new Sudoku
- if (add_route(destination) )
+ if ( add_route(destination) )
    {
     // While the Sudoku is being generated, spawn a box saying it is "in progress"
     var generating_progress = document.createElement("DIV");
@@ -264,7 +286,6 @@ function check_user_input(id)
 // ----------------------------------------------------------------------------------------------
 // 	CHECK SOLVED SUDOKU
 // ----------------------------------------------------------------------------------------------
-// Check that the entire Sudoku has been solved
 function check_solved_sudoku(destination)
 {
  // Iterate through all cells, fill up the "sudoku string.
@@ -292,42 +313,4 @@ function check_solved_sudoku(destination)
  console.log(logtime() + "[ INFO ] Sending request to CHECK SOLVED SUDOKU");
  socket.emit('sudoku_solved', { destination: destination, sudoku: sudoku });
 }
-
-
-
-// ----------------------------------------------------------------------------------------------
-// 	OTHERS
-// ----------------------------------------------------------------------------------------------
-
-// Recieve and store client IP
-socket.on('client_IP', function(data)
-{
- console.log(logtime() + "[ DATA ] Recieved my IP: " + data);
- document.getElementById("client_identification").innerHTML = data;
- // Also update a nickname, if one is stored
- if( sessionStorage.getItem('nickname') != null ) change_nickname(sessionStorage.getItem('nickname'));
-});
-
-
-// Change nickname
-function change_nickname(data)
-{
- console.log(logtime() + "[ DATA ] Recieved new nickname: " + data);
- var nickname_element = document.getElementById("nickname");
- if (nickname_element != null) document.getElementById("nickname").innerHTML = data;
- else document.getElementById("client_identification").innerHTML += "<br /><span id='nickname'>"+data+"</span>";
-
- console.log(logtime() + "[ INFO ] Creating session storage key pair NICKNAME");
- sessionStorage.setItem('nickname', data);
-}
-
-// Nickname has changed
-socket.on('change_nickname', function(data){ change_nickname(data); });
-
-// My role has changed
-socket.on('change_role', function(data)
-{
- console.log(logtime() + "[ DATA ] Recieved new role: " + data);
- window.location.href = "/" + data;
-});
 
